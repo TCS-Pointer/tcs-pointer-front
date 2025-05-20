@@ -1,0 +1,52 @@
+{
+    "setores": [
+        {
+            "setor": "Tecnologia da Informação",
+            "cargos": [
+                "Desenvolvedor Júnior",
+                "Desenvolvedor Pleno",
+                "Desenvolvedor Sênior"
+            ]
+        },
+        {
+            "setor": "Recursos Humanos",
+            "cargos": [
+                "Assistente de RH",
+                "Analista de RH",
+                "Coordenador de RH"
+            ]
+        },
+        {
+            "setor": "Financeiro",
+            "cargos": [
+                "Assistente Financeiro",
+                "Analista Financeiro",
+                "Gerente Financeiro"
+            ]
+        },
+        {
+            "setor": "Marketing",
+            "cargos": [
+                "Assistente de Marketing",
+                "Analista de Marketing",
+                "Coordenador de Marketing"
+            ]
+        },
+        {
+            "setor": "Comercial",
+            "cargos": [
+                "Assistente Comercial",
+                "Consultor de Vendas",
+                "Coordenador de Vendas"
+            ]
+        },
+        {
+            "setor": "Logística",
+            "cargos": [
+                "Assistente de Logística",
+                "Analista de Logística",
+                "Coordenador de Logística"
+            ]
+        }
+    ]
+}

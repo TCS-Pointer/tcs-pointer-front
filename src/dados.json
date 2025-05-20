@@ -1,0 +1,541 @@
+{
+    "setores": [
+        {
+            "setor": "Tecnologia da Informação",
+            "cargos": [
+                "Desenvolvedor Júnior",
+                "Desenvolvedor Pleno",
+                "Desenvolvedor Sênior",
+                "Engenheiro de Software",
+                "Arquiteto de Software",
+                "Especialista em DevOps"
+            ]
+        },
+        {
+            "setor": "Recursos Humanos",
+            "cargos": [
+                "Assistente de RH",
+                "Analista de RH",
+                "Coordenador de RH",
+                "Gerente de RH",
+                "Especialista em Recrutamento",
+                "Consultor de Recursos Humanos"
+            ]
+        },
+        {
+            "setor": "Financeiro",
+            "cargos": [
+                "Assistente Financeiro",
+                "Analista Financeiro",
+                "Gerente Financeiro",
+                "Controller",
+                "Tesoureiro",
+                "Consultor Financeiro",
+                "Coordenador de Finanças"
+            ]
+        },
+        {
+            "setor": "Marketing",
+            "cargos": [
+                "Assistente de Marketing",
+                "Analista de Marketing",
+                "Coordenador de Marketing",
+                "Gerente de Marketing",
+                "Especialista em Marketing Digital",
+                "Consultor de Branding"
+            ]
+        },
+        {
+            "setor": "Comercial",
+            "cargos": [
+                "Assistente Comercial",
+                "Consultor de Vendas",
+                "Coordenador de Vendas",
+                "Gerente Comercial",
+                "Diretor Comercial",
+                "Consultor de Vendas Externas"
+            ]
+        },
+        {
+            "setor": "Logística",
+            "cargos": [
+                "Assistente de Logística",
+                "Analista de Logística",
+                "Coordenador de Logística",
+                "Supervisor de Logística",
+                "Gerente de Logística",
+                "Diretor de Logística"
+            ]
+        },
+        {
+            "setor": "Produção",
+            "cargos": [
+                "Operador de Produção",
+                "Assistente de Produção",
+                "Supervisor de Produção",
+                "Coordenador de Produção",
+                "Gerente de Produção"
+            ]
+        },
+        {
+            "setor": "Jurídico",
+            "cargos": [
+                "Assistente Jurídico",
+                "Advogado Júnior",
+                "Advogado Pleno",
+                "Advogado Sênior",
+                "Consultor Jurídico"
+            ]
+        },
+        {
+            "setor": "Atendimento ao Cliente",
+            "cargos": [
+                "Atendente de SAC",
+                "Assistente de Atendimento",
+                "Coordenador de Atendimento",
+                "Gerente de Atendimento",
+                "Diretor de Atendimento"
+            ]
+        },
+        {
+            "setor": "Saúde",
+            "cargos": [
+                "Enfermeiro Júnior",
+                "Enfermeiro Pleno",
+                "Médico Júnior",
+                "Médico Pleno",
+                "Médico Sênior"
+            ]
+        },
+        {
+            "setor": "Educação",
+            "cargos": [
+                "Professor de Ensino Fundamental",
+                "Professor de Ensino Médio",
+                "Professor Universitário",
+                "Coordenador Pedagógico",
+                "Diretor Escolar"
+            ]
+        },
+        {
+            "setor": "Design",
+            "cargos": [
+                "Designer Júnior",
+                "Designer Pleno",
+                "Designer Sênior",
+                "Designer de Produto",
+                "Especialista em UI/UX"
+            ]
+        },
+        {
+            "setor": "Pesquisa e Desenvolvimento",
+            "cargos": [
+                "Assistente de P&D",
+                "Analista de P&D",
+                "Coordenador de P&D",
+                "Pesquisador Sênior",
+                "Gerente de P&D"
+            ]
+        },
+        {
+            "setor": "Gestão de Projetos",
+            "cargos": [
+                "Assistente de Projetos",
+                "Analista de Projetos",
+                "Coordenador de Projetos",
+                "Gerente de Projetos",
+                "Diretor de Projetos"
+            ]
+        },
+        {
+            "setor": "Gestão de Pessoas",
+            "cargos": [
+                "Assistente de Gestão de Pessoas",
+                "Analista de Gestão de Pessoas",
+                "Coordenador de Gestão de Pessoas",
+                "Gerente de Gestão de Pessoas",
+                "Diretor de Gestão de Pessoas"
+            ]
+        },
+        {
+            "setor": "Comércio",
+            "cargos": [
+                "Atendente de Loja",
+                "Vendedor",
+                "Consultor de Vendas",
+                "Gerente de Loja",
+                "Coordenador de Loja"
+            ]
+        },
+        {
+            "setor": "Segurança",
+            "cargos": [
+                "Agente de Segurança",
+                "Supervisor de Segurança",
+                "Coordenador de Segurança",
+                "Gestor de Segurança",
+                "Diretor de Segurança"
+            ]
+        },
+        {
+            "setor": "Sustentabilidade e Meio Ambiente",
+            "cargos": [
+                "Assistente Ambiental",
+                "Analista Ambiental",
+                "Coordenador Ambiental",
+                "Consultor Ambiental",
+                "Especialista em Sustentabilidade"
+            ]
+        },
+        {
+            "setor": "Engenharia",
+            "cargos": [
+                "Engenheiro Júnior",
+                "Engenheiro Pleno",
+                "Engenheiro Sênior",
+                "Engenheiro de Produto",
+                "Engenheiro de Software"
+            ]
+        },
+        {
+            "setor": "Entretenimento e Mídia",
+            "cargos": [
+                "Produtor de Conteúdo",
+                "Editor de Vídeo",
+                "Diretor de Mídia",
+                "Redator",
+                "Jornalista"
+            ]
+        },
+        {
+            "setor": "TI e Suporte",
+            "cargos": [
+                "Técnico de Suporte",
+                "Analista de Suporte",
+                "Coordenador de Suporte",
+                "Especialista em TI",
+                "Gerente de TI"
+            ]
+        },
+        {
+            "setor": "E-commerce",
+            "cargos": [
+                "Assistente de E-commerce",
+                "Analista de E-commerce",
+                "Coordenador de E-commerce",
+                "Gerente de E-commerce",
+                "Diretor de E-commerce"
+            ]
+        },
+        {
+            "setor": "Gestão de Qualidade",
+            "cargos": [
+                "Assistente de Qualidade",
+                "Analista de Qualidade",
+                "Coordenador de Qualidade",
+                "Especialista em Qualidade",
+                "Diretor de Qualidade"
+            ]
+        },
+        {
+            "setor": "Gestão de Marketing Digital",
+            "cargos": [
+                "Analista de Marketing Digital",
+                "Coordenador de Marketing Digital",
+                "Gerente de Marketing Digital",
+                "Consultor de Mídias Digitais",
+                "Especialista em SEO"
+            ]
+        },
+        {
+            "setor": "Comunicação Corporativa",
+            "cargos": [
+                "Coordenador de Comunicação",
+                "Analista de Comunicação",
+                "Consultor de Comunicação",
+                "Gerente de Comunicação",
+                "Diretor de Comunicação"
+            ]
+        },
+        {
+            "setor": "Gestão de TI",
+            "cargos": [
+                "Analista de TI",
+                "Coordenador de TI",
+                "Gerente de TI",
+                "Diretor de TI",
+                "Especialista em Cloud Computing"
+            ]
+        },
+        {
+            "setor": "Gestão de Vendas",
+            "cargos": [
+                "Coordenador de Vendas",
+                "Supervisor de Vendas",
+                "Gerente de Vendas",
+                "Consultor de Vendas",
+                "Diretor de Vendas"
+            ]
+        },
+        {
+            "setor": "Gestão de Operações",
+            "cargos": [
+                "Coordenador de Operações",
+                "Gestor de Operações",
+                "Diretor de Operações",
+                "Especialista em Logística",
+                "Analista de Processos"
+            ]
+        },
+        {
+            "setor": "Gestão de Produtos",
+            "cargos": [
+                "Assistente de Produtos",
+                "Coordenador de Produtos",
+                "Gerente de Produtos",
+                "Diretor de Produtos",
+                "Especialista em Inovação de Produtos"
+            ]
+        },
+        {
+            "setor": "Gestão de Processos",
+            "cargos": [
+                "Coordenador de Processos",
+                "Gestor de Processos",
+                "Diretor de Processos",
+                "Consultor de Processos",
+                "Especialista em Gestão de Mudanças"
+            ]
+        },
+        {
+            "setor": "Gestão de Logística",
+            "cargos": [
+                "Coordenador de Logística",
+                "Gestor de Logística",
+                "Diretor de Logística",
+                "Consultor de Logística",
+                "Especialista em Supply Chain"
+            ]
+        },
+        {
+            "setor": "Gestão de Projetos Ágeis",
+            "cargos": [
+                "Scrum Master",
+                "Product Owner",
+                "Agile Coach",
+                "Consultor Ágil",
+                "Gerente de Projetos Ágeis"
+            ]
+        },
+        {
+            "setor": "Gestão de Mídia",
+            "cargos": [
+                "Coordenador de Mídia",
+                "Gestor de Mídia",
+                "Diretor de Mídia",
+                "Consultor de Mídia Digital",
+                "Especialista em Mídias Sociais"
+            ]
+        },
+        {
+            "setor": "Gestão de Comunicação",
+            "cargos": [
+                "Coordenador de Comunicação",
+                "Gestor de Comunicação",
+                "Diretor de Comunicação",
+                "Consultor de Comunicação Estratégica",
+                "Especialista em Relações Públicas"
+            ]
+        },
+        {
+            "setor": "Gestão de Recursos",
+            "cargos": [
+                "Coordenador de Recursos",
+                "Gestor de Recursos",
+                "Diretor de Recursos",
+                "Especialista em Recursos Humanos",
+                "Consultor de Gestão de Talentos"
+            ]
+        },
+        {
+            "setor": "Gestão de Inovação",
+            "cargos": [
+                "Especialista em Inovação",
+                "Coordenador de Inovação",
+                "Diretor de Inovação",
+                "Consultor de Inovação",
+                "Gerente de Pesquisa e Desenvolvimento"
+            ]
+        },
+        {
+            "setor": "Gestão de Sustentabilidade",
+            "cargos": [
+                "Analista de Sustentabilidade",
+                "Coordenador de Sustentabilidade",
+                "Diretor de Sustentabilidade",
+                "Consultor Ambiental",
+                "Especialista em Responsabilidade Social"
+            ]
+        },
+        {
+            "setor": "Gestão de Relacionamento",
+            "cargos": [
+                "Especialista em Relacionamento",
+                "Coordenador de Relacionamento",
+                "Gerente de Relacionamento",
+                "Consultor de Relacionamento com Clientes",
+                "Diretor de Relacionamento"
+            ]
+        },
+        {
+            "setor": "Gestão de Riscos",
+            "cargos": [
+                "Analista de Riscos",
+                "Coordenador de Riscos",
+                "Gerente de Riscos",
+                "Consultor de Riscos",
+                "Diretor de Riscos"
+            ]
+        },
+        {
+            "setor": "Gestão de Compras",
+            "cargos": [
+                "Assistente de Compras",
+                "Analista de Compras",
+                "Coordenador de Compras",
+                "Gerente de Compras",
+                "Diretor de Compras"
+            ]
+        },
+        {
+            "setor": "Gestão de Treinamento",
+            "cargos": [
+                "Assistente de Treinamento",
+                "Coordenador de Treinamento",
+                "Gerente de Treinamento",
+                "Consultor de Treinamento",
+                "Diretor de Treinamento"
+            ]
+        },
+        {
+            "setor": "Gestão de Finanças",
+            "cargos": [
+                "Assistente Financeiro",
+                "Coordenador de Finanças",
+                "Gerente Financeiro",
+                "Consultor Financeiro",
+                "Diretor Financeiro"
+            ]
+        },
+        {
+            "setor": "Gestão de Compliance",
+            "cargos": [
+                "Analista de Compliance",
+                "Coordenador de Compliance",
+                "Gerente de Compliance",
+                "Consultor de Compliance",
+                "Diretor de Compliance"
+            ]
+        },
+        {
+            "setor": "Gestão de Clientes",
+            "cargos": [
+                "Assistente de Atendimento",
+                "Coordenador de Atendimento",
+                "Gerente de Atendimento",
+                "Consultor de Atendimento",
+                "Diretor de Atendimento"
+            ]
+        },
+        {
+            "setor": "Gestão de Tecnologia",
+            "cargos": [
+                "Assistente de TI",
+                "Analista de TI",
+                "Coordenador de TI",
+                "Gerente de TI",
+                "Diretor de TI"
+            ]
+        },
+        {
+            "setor": "Gestão de Infraestrutura",
+            "cargos": [
+                "Assistente de Infraestrutura",
+                "Analista de Infraestrutura",
+                "Coordenador de Infraestrutura",
+                "Gerente de Infraestrutura",
+                "Diretor de Infraestrutura"
+            ]
+        },
+        {
+            "setor": "Gestão de Saúde e Segurança no Trabalho",
+            "cargos": [
+                "Técnico em Segurança do Trabalho",
+                "Analista de Segurança do Trabalho",
+                "Coordenador de Segurança do Trabalho",
+                "Gestor de Segurança",
+                "Diretor de Segurança do Trabalho"
+            ]
+        },
+        {
+            "setor": "Gestão de Contratos",
+            "cargos": [
+                "Assistente de Contratos",
+                "Analista de Contratos",
+                "Coordenador de Contratos",
+                "Gestor de Contratos",
+                "Diretor de Contratos"
+            ]
+        },
+        {
+            "setor": "Gestão de Eventos",
+            "cargos": [
+                "Assistente de Eventos",
+                "Coordenador de Eventos",
+                "Gerente de Eventos",
+                "Consultor de Eventos",
+                "Diretor de Eventos"
+            ]
+        },
+        {
+            "setor": "Gestão de Logística Reversa",
+            "cargos": [
+                "Assistente de Logística Reversa",
+                "Analista de Logística Reversa",
+                "Coordenador de Logística Reversa",
+                "Gestor de Logística Reversa",
+                "Diretor de Logística Reversa"
+            ]
+        },
+        {
+            "setor": "Gestão de Custos",
+            "cargos": [
+                "Assistente de Custos",
+                "Analista de Custos",
+                "Coordenador de Custos",
+                "Gestor de Custos",
+                "Diretor de Custos"
+            ]
+        },
+        {
+            "setor": "Gestão de Auditoria",
+            "cargos": [
+                "Auditor Júnior",
+                "Auditor Pleno",
+                "Auditor Sênior",
+                "Coordenador de Auditoria",
+                "Diretor de Auditoria"
+            ]
+        },
+        {
+            "setor": "Gestão de Responsabilidade Social",
+            "cargos": [
+                "Coordenador de Responsabilidade Social",
+                "Gestor de Responsabilidade Social",
+                "Diretor de Responsabilidade Social",
+                "Consultor Social",
+                "Especialista em Responsabilidade Social"
+            ]
+        }
+    ]
+}
