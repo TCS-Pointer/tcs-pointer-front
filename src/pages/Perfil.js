@@ -37,6 +37,7 @@ const Perfil = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
+      console.log(user);
       if (user?.email) {
         setLoading(true);
         try {
@@ -116,22 +117,22 @@ const Perfil = () => {
             <div>
               <div className="text-xl font-semibold text-gray-900">{userData?.nome || 'Usuário'}</div>
               <span className="inline-block mt-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                {userData?.tipoUsuario === 'ADMIN' ? 'Administrador' : userData?.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
+                {userData.tipoUsuario === 'ADMIN' ? 'Administrador' : userData.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
               </span>
             </div>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Email</span>
-              <span className="text-gray-600">{userData?.email}</span>
+              <span className="text-gray-600">{userData.email}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Departamento</span>
-              <span className="text-gray-600">{userData?.setor || '-'}</span>
+              <span className="text-gray-600">{userData.setor || '-'}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Cargo</span>
-              <span className="text-gray-600">{userData?.cargo || '-'}</span>
+              <span className="text-gray-600">{userData.cargo || '-'}</span>
             </div>
           </div>
         </div>

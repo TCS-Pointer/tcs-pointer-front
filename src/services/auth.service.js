@@ -40,8 +40,10 @@ class AuthService {
       };
 
       const response = await this.api.post('/token', loginData);
-      const token = response.data.access_token;
-      localStorage.setItem('token', token);
+      const token = response.data.content.access_token;
+      localStorage.setItem('access_token', token);
+      const expiresIn = response.data.content.expires_in;
+      localStorage.setItem('expires_in', expiresIn);
 
       return this.decodeToken(token);
     } catch (error) {
@@ -56,8 +58,11 @@ class AuthService {
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
       ).join(''));
-
       const payload = JSON.parse(jsonPayload);
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        return null; // Token expirado
+      }
       return {
         id: payload.sub,
         email: payload.email,
@@ -70,7 +75,7 @@ class AuthService {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
   }
 
   getCurrentUser() {
@@ -85,7 +90,7 @@ class AuthService {
   }
 
   getToken() {
-    return localStorage.getItem('token');
+    return localStorage.getItem('access_token');
   }
 
   handleError(error) {
@@ -103,18 +108,18 @@ class AuthService {
   }
 
   async forgotPassword(email) {
-    const response = await api.post('/esqueceu-senha', { email });
-    return response.data;
+    const response = await api.post('/api/usuarios/esqueceu-senha', { email });
+    return response.data.content;
   }
 
   async verifyCode(email, code) {
-    const response = await api.post('/auth/verify-code', { email, code });
-    return response.data;
+    const response = await api.post('/api/usuarios/verificar-codigo', { email, code });
+    return response.data.content;
   }
 
   async resetPassword(email, password) {
-    const response = await api.post('/auth/reset-password', { email, password });
-    return response.data;
+    const response = await api.post('/api/usuarios/redefinir-senha', { email, password });
+    return response.data.content;
   }
 }
 

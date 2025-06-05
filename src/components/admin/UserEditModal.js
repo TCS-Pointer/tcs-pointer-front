@@ -3,8 +3,10 @@ import dados from '../../dados.json';
 import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
 import Toast from '../ui/Toast';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function UserEditModal({ open, onClose, onSave, user }) {
+  const { user: loggedUser } = useAuth();
   const [form, setForm] = useState({
     nome: '',
     email: '',
@@ -208,6 +210,7 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
               onChange={handleChange}
               className="border rounded px-3 py-2"
               required
+              disabled={loggedUser?.email === form.email}
             >
               <option value="ATIVO">Ativo</option>
               <option value="INATIVO">Inativo</option>

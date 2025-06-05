@@ -24,7 +24,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       const user = await login(data.username, data.password);
-      
+      console.log(user);
       if (user.roles.includes('admin')) {
         navigate('/admin');
       } else if (user.roles.includes('gestor')) {

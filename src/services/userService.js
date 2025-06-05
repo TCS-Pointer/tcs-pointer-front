@@ -4,13 +4,13 @@ export const userService = {
   
   getUsers: async (page = 0, filters = {}) => {
     try {
-      const response = await api.get('/usuarios', {
+      const response = await api.get('/api/usuarios', {
         params: {
           page,
           ...filters
         }
       });
-      return response.data;
+      return response.data.content;
     } catch (error) {
       throw error;
     }
@@ -19,34 +19,35 @@ export const userService = {
 
   // Buscar um usuário específico
   getUserById: async (id) => {
-    const response = await api.get(`/${id}`);
-    return response.data;
+    const response = await api.get(`/api/usuarios/${id}`);
+    return response.data.content;
   },
   getUserByEmail: async (email) => {
-    const response = await api.get(`/usuarios/${email}`);
-    return response.data;
+    const response = await api.get(`/api/usuarios/${email}`);
+    return response.data.content;
   },
 
   // Criar um novo usuário
   createUser: async (userData) => {
-    const response = await api.post('/usuarios', userData);
-    return response.data;
+    console.log(userData);
+    const response = await api.post('/api/usuarios', userData);
+    return response.data.content;
   },
 
   // Atualizar um usuário
   updateUser: async (id, userData) => {
-    const response = await api.put(`/usuarios/atualizar-usuario/${id}`, userData);
-    return response.data;
+    const response = await api.put(`/api/usuarios/atualizar-usuario/${id}`, userData);
+    return response.data.content;
   },
 
 
   updateUserStatus: async (email) => {
-    const response = await api.post(`/usuarios/alterar-status`,  {email: email});
-    return response.data;
+    const response = await api.post(`/api/usuarios/alterar-status`,  {email: email});
+    return response.data.content;
   },
 
   verifyEmail: async (email) => {
-    return await api.get(`/usuarios/verificar-email/${email}`);  
+    return await api.get(`/api/usuarios/verificar-email/${email}`);  
   },
 
 };  
