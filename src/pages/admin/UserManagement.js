@@ -10,6 +10,7 @@ import { Users, UserPlus, Ban, CheckCircle2, Pencil } from "lucide-react";
 import UserCreateModal from '../../components/admin/UserCreateModal';
 import UserEditModal from '../../components/admin/UserEditModal';
 import CenteredToast from '../../components/ui/CenteredToast';
+import { useAuth } from '../../contexts/AuthContext';
 
 const UserCard = ({ title, value, icon }) => (
   <Card>
@@ -46,6 +47,7 @@ const STATUS = [
 
 const UserManagement = () => {
   const navigate = useNavigate();
+  const { user: loggedUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -280,17 +282,19 @@ const UserManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleStatusChange(user.email)}
-                      >
-                        {user.status === 'ATIVO' ? (
-                          <Ban className="h-4 w-4 text-red-600" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        )}
-                      </Button>
+                      {loggedUser?.email !== user.email && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleStatusChange(user.email)}
+                        >
+                          {user.status === 'ATIVO' ? (
+                            <Ban className="h-4 w-4 text-red-600" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          )}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
