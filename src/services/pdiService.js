@@ -1,0 +1,45 @@
+import api from './api';
+
+const pdiService = {
+    getAllPdis: async () => {
+        try {
+            // Assumindo que a rota para listar todos os PDIs para Admin/Gestor é '/pdi'
+            const response = await api.get('/pdi');
+            return response.data.content; // Retorna apenas a lista de PDIs
+        } catch (error) {
+            console.error('Erro ao buscar todos os PDIs:', error);
+            throw error; // Rejeita a promessa para que o componente possa tratar o erro
+        }
+    },
+
+    createPdi: async (pdiData) => {
+        try {
+            // Assumindo que a rota para criar um PDI é '/pdi'
+            const response = await api.post('/pdi', pdiData);
+            return response.data.content; // Retorna o PDI criado
+        } catch (error) {
+            console.error('Erro ao criar PDI:', error);
+            throw error; // Rejeita a promessa para que o componente possa tratar o erro
+        }
+    },
+
+    // Função atualizada para buscar usuários por ID do usuário
+    getUsersByDepartment: async (userId) => {
+        try {
+            const response = await api.get(`/api/usuarios/setor/${userId}`);
+            // Verifica se a resposta tem a estrutura esperada
+            if (response.data && response.data.content) {
+                return response.data.content;
+            }
+            console.warn('Resposta da API não contém a estrutura esperada:', response.data);
+            return [];
+        } catch (error) {
+            console.error('Erro ao buscar usuários do setor:', error);
+            throw error;
+        }
+    },
+
+    // Futuramente, podemos adicionar outras funções aqui, como getPdiById, updatePdi, deletePdi, etc.
+};
+
+export default pdiService; 
