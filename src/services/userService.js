@@ -1,7 +1,7 @@
 import api from './api';
 
 export const userService = {
-  
+
   getUsers: async (page = 0, filters = {}) => {
     try {
       const response = await api.get('/api/usuarios', {
@@ -76,4 +76,4 @@ export const userService = {
     }
   },
 
-};  
+};
