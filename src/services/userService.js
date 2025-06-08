@@ -1,7 +1,7 @@
 import api from './api';
 
 export const userService = {
-  
+
   getUsers: async (page = 0, filters = {}) => {
     try {
       const response = await api.get('/api/usuarios', {
@@ -42,12 +42,18 @@ export const userService = {
 
 
   updateUserStatus: async (email) => {
-    const response = await api.post(`/api/usuarios/alterar-status`,  {email: email});
+    const response = await api.post(`/api/usuarios/alterar-status`, { email: email });
     return response.data.content;
   },
 
   verifyEmail: async (email) => {
-    return await api.get(`/api/usuarios/verificar-email/${email}`);  
+    return await api.get(`/api/usuarios/verificar-email/${email}`);
   },
 
-};  
+};
+
+export async function getUsuarioByKeycloakId(keycloakId) {
+  const response = await api.get(`/api/usuarios/keycloak/${keycloakId}`);
+  console.log('Resposta da API do ID do usuário:', response.data);
+  return response.data.content; // ajuste conforme a resposta da sua API
+}  
