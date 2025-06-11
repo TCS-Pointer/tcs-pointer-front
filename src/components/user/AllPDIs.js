@@ -21,6 +21,7 @@ const AllPDIs = () => {
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('todos');
     const [loadingDepartments, setLoadingDepartments] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState('ATIVO'); // Novo estado para controlar o status selecionado
 
     // Mover a função fetchPdis para fora do useEffect
     const fetchPdis = async () => {
@@ -233,12 +234,24 @@ const AllPDIs = () => {
                     </div>
                     <div className="hidden sm:block">
                         <nav className="flex space-x-4" aria-label="Tabs">
-                            {/* Substituir por componente de Tabs real se necessário */}
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-blue-600 bg-blue-100">{dictionary['ATIVO']}</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['CONCLUIDO']}</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['ATRASADO']}</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['PENDENTE']}</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['CANCELADO']}</button>
+                            <button
+                                onClick={() => setSelectedStatus('ATIVO')}
+                                className={`px-3 py-2 font-medium text-sm rounded-md ${selectedStatus === 'ATIVO'
+                                    ? 'text-blue-600 bg-blue-100'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                {dictionary['ATIVO']}
+                            </button>
+                            <button
+                                onClick={() => setSelectedStatus('CONCLUIDO')}
+                                className={`px-3 py-2 font-medium text-sm rounded-md ${selectedStatus === 'CONCLUIDO'
+                                    ? 'text-blue-600 bg-blue-100'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                {dictionary['CONCLUIDO']}
+                            </button>
                         </nav>
                     </div>
                 </div>
