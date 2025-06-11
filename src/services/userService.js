@@ -20,7 +20,7 @@ export const userService = {
 
   // Buscar um usuário específico
   getUserById: async (id) => {
-    const response = await api.get(`/api/usuarios/${id}`);
+    const response = await api.get(`/api/usuarios/id/${id}`);
     return response.data.content;
   },
   getUserByKeycloakId: async (keycloaky) => {
