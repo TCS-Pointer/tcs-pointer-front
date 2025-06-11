@@ -27,19 +27,7 @@ const AllPDIs = () => {
         try {
             setLoading(true);
             const data = await pdiService.getAllPdis();
-            // Buscar dados dos usuários para cada PDI
-            const pdIsWithUsers = await Promise.all(
-                data.map(async (pdi) => {
-                    try {
-                        const userData = await userService.getUserById(pdi.idDestinatario);
-                        return { ...pdi, userData };
-                    } catch (error) {
-                        console.error(`Erro ao buscar dados do usuário ${pdi.idDestinatario}:`, error);
-                        return { ...pdi, userData: null };
-                    }
-                })
-            );
-            setPdis(pdIsWithUsers);
+            setPdis(data);
         } catch (err) {
             setError('Erro ao carregar a lista de PDIs.');
             console.error('Erro ao buscar PDIs:', err);
@@ -93,13 +81,24 @@ const AllPDIs = () => {
         fetchPdis(); // Recarregar a lista de PDIs - agora acessível
     };
 
-    // Função para filtrar PDIs baseado no departamento selecionado
+    // Função para filtrar PDIs baseado no departamento e status selecionados
     const filteredPdis = React.useMemo(() => {
-        if (selectedDepartment === 'todos') {
-            return pdis;
+        let filtered = pdis;
+
+        // Filtro por departamento
+        if (selectedDepartment !== 'todos') {
+            filtered = filtered.filter(pdi => pdi.destinatario?.setor === selectedDepartment);
         }
-        return pdis.filter(pdi => pdi.setor === selectedDepartment);
-    }, [pdis, selectedDepartment]);
+
+        // Filtro por status
+        if (selectedStatus === 'ATIVO') {
+            filtered = filtered.filter(pdi => pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO');
+        } else {
+            filtered = filtered.filter(pdi => pdi.status === selectedStatus);
+        }
+
+        return filtered;
+    }, [pdis, selectedDepartment, selectedStatus]);
 
     return (
         <div className="space-y-6">
@@ -258,11 +257,11 @@ const AllPDIs = () => {
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                        {pdi.userData ? pdi.userData.nome.charAt(0).toUpperCase() : 'U'}
+                                        {pdi.destinatario ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold">{pdi.userData ? pdi.userData.nome : 'Usuário não encontrado'}</h3>
-                                        <p className="text-sm text-gray-600">{pdi.userData ? `${pdi.userData.cargo} • ${pdi.userData.setor}` : 'Cargo • Departamento'}</p>
+                                        <h3 className="text-lg font-semibold">{pdi.destinatario ? pdi.destinatario.nome : 'Usuário não encontrado'}</h3>
+                                        <p className="text-sm text-gray-600">{pdi.destinatario ? `${pdi.destinatario.cargo} • ${pdi.destinatario.setor}` : 'Cargo • Departamento'}</p>
                                     </div>
                                 </div>
                                 {/* Status do PDI */}
