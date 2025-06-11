@@ -126,7 +126,6 @@ const AllPDIs = () => {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {/* Calcular PDIs ativos a partir da lista 'pdis' */}
                         <div className="text-2xl font-bold">{pdis.filter(p => p.status === 'ATIVO' || p.status === 'EM_ANDAMENTO').length}</div>
                         <p className="text-xs text-muted-foreground">+Novos este trimestre (Implementar cálculo)</p>
                     </CardContent>
@@ -137,7 +136,6 @@ const AllPDIs = () => {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {/* Calcular PDIs concluídos a partir da lista 'pdis' */}
                         <div className="text-2xl font-bold">{pdis.filter(p => p.status === 'CONCLUIDO').length}</div>
                         <p className="text-xs text-muted-foreground">+Novos no último mês (Implementar cálculo)</p>
                     </CardContent>
@@ -148,9 +146,19 @@ const AllPDIs = () => {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {/* Calcular taxa de conclusão (Implementar cálculo) */}
-                        <div className="text-2xl font-bold">58%</div>
-                        <p className="text-xs text-muted-foreground">+5% comparado ao trimestre anterior (Implementar cálculo)</p>
+                        {(() => {
+                            const totalPDIs = pdis.length;
+                            const pdisConcluidos = pdis.filter(p => p.status === 'CONCLUIDO').length;
+                            const taxaConclusao = totalPDIs > 0 ? Math.round((pdisConcluidos / totalPDIs) * 100) : 0;
+                            return (
+                                <>
+                                    <div className="text-2xl font-bold">{taxaConclusao}%</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {pdisConcluidos} de {totalPDIs} PDIs concluídos
+                                    </p>
+                                </>
+                            );
+                        })()}
                     </CardContent>
                 </Card>
                 <Card>
@@ -160,7 +168,7 @@ const AllPDIs = () => {
                     </CardHeader>
                     <CardContent>
                         {/* Calcular colaboradores únicos com PDI (Implementar cálculo) */}
-                        <div className="text-2xl font-bold">{new Set(pdis.map(p => p.destinatario)).size}</div>
+                        <div className="text-2xl font-bold">{new Set(pdis.map(p => p.idDestinatario)).size}</div>
                         <p className="text-xs text-muted-foreground">% do total de colaboradores (Implementar cálculo)</p>
                     </CardContent>
                 </Card>
