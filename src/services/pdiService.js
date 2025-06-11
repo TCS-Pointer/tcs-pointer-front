@@ -26,15 +26,19 @@ const pdiService = {
     // Função atualizada para buscar usuários por ID do usuário
     getUsersByDepartment: async (userId) => {
         try {
+            console.log(`pdiService: Iniciando busca de usuários do setor para ID: ${userId}`);
             const response = await api.get(`/api/usuarios/setor/${userId}`);
+            console.log(`pdiService: Resposta da API para usuários do setor (ID ${userId}):`, response.data);
+            
             // Verifica se a resposta tem a estrutura esperada
             if (response.data && response.data.content) {
+                console.log(`pdiService: Total de usuários encontrados no setor: ${response.data.content.length}`);
                 return response.data.content;
             }
-            console.warn('Resposta da API não contém a estrutura esperada:', response.data);
+            console.warn('pdiService: Resposta da API não contém a estrutura esperada:', response.data);
             return [];
         } catch (error) {
-            console.error('Erro ao buscar usuários do setor:', error);
+            console.error(`pdiService: Erro ao buscar usuários do setor (ID ${userId}):`, error);
             throw error;
         }
     },
