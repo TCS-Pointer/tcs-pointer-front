@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import pdiService from '../../services/pdiService'; // Importando o serviço de PDI
 import CreatePdiModal from './CreatePdiModal'; // Importando o modal
 import { useAuth } from '../../contexts/AuthContext';
+import { dictionary, formatDate } from '../../utils/Dictionary'; // Importando dictionary e formatDate
 
 // Ícones (exemplo, pode precisar ajustar os caminhos ou usar lucide-react se disponível)
 import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react'; // Adicionado ícone Eye
@@ -202,20 +203,22 @@ const AllPDIs = () => {
                                 <SelectValue placeholder="Ativos" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="ativos">Ativos</SelectItem>
-                                <SelectItem value="concluidos">Concluídos</SelectItem>
-                                <SelectItem value="atrasados">Atrasados</SelectItem>
-                                <SelectItem value="pendente">Pendente</SelectItem> {/* Adicionado PENDENTE */}
+                                <SelectItem value="ativos">{dictionary['ATIVO']}</SelectItem>
+                                <SelectItem value="concluidos">{dictionary['CONCLUIDO']}</SelectItem>
+                                <SelectItem value="atrasados">{dictionary['ATRASADO']}</SelectItem>
+                                <SelectItem value="pendente">{dictionary['PENDENTE']}</SelectItem>
+                                <SelectItem value="cancelados">{dictionary['CANCELADO']}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="hidden sm:block">
                         <nav className="flex space-x-4" aria-label="Tabs">
                             {/* Substituir por componente de Tabs real se necessário */}
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-blue-600 bg-blue-100">Ativos</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">Concluídos</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">Atrasados</button>
-                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">Pendente</button> {/* Adicionado PENDENTE */}
+                            <button className="px-3 py-2 font-medium text-sm rounded-md text-blue-600 bg-blue-100">{dictionary['ATIVO']}</button>
+                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['CONCLUIDO']}</button>
+                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['ATRASADO']}</button>
+                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['PENDENTE']}</button>
+                            <button className="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">{dictionary['CANCELADO']}</button>
                         </nav>
                     </div>
                 </div>
@@ -245,20 +248,23 @@ const AllPDIs = () => {
                                     </div>
                                 </div>
                                 {/* Status do PDI */}
-                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
+                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                    pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
                                     pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
-                                        pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
-                                            'bg-gray-100 text-gray-800' // PENDENTE ou outro status
-                                    }`}>
-                                    {pdi.status}
+                                    pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
+                                    pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
+                                    pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
+                                    'bg-gray-100 text-gray-800'
+                                }`}>
+                                    {dictionary[pdi.status] || pdi.status}
                                 </span>
                             </div>
                             {/* Título e descrição do PDI */}
                             <h4 className="text-md font-semibold mb-2">{pdi.titulo}</h4>
                             {/* Datas do PDI */}
                             <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                <span>Início: {pdi.dataInicio}</span> {/* Formatar data se necessário */}
-                                <span>Término: {pdi.dataFim}</span> {/* Formatar data se necessário */}
+                                <span>Início: {formatDate(pdi.dataInicio)}</span>
+                                <span>Término: {formatDate(pdi.dataFim)}</span>
                             </div>
                             {/* Barra de Progresso (Calculo a partir dos marcos - Implementar) */}
                             <div className="mb-4">
@@ -294,4 +300,4 @@ const AllPDIs = () => {
     );
 };
 
-export default AllPDIs; 
+export default AllPDIs;
