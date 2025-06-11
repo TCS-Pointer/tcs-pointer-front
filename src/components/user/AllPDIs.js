@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import pdiService from '../../services/pdiService'; // Importando o serviço de PDI
+import { userService } from '../../services/userService';
 import CreatePdiModal from './CreatePdiModal'; // Importando o modal
 import { useAuth } from '../../contexts/AuthContext';
 import { dictionary, formatDate } from '../../utils/Dictionary'; // Importando dictionary e formatDate
@@ -26,11 +27,23 @@ const AllPDIs = () => {
         try {
             setLoading(true);
             const data = await pdiService.getAllPdis();
-            setPdis(data); // Assumindo que o serviço retorna a lista diretamente
+            // Buscar dados dos usuários para cada PDI
+            const pdIsWithUsers = await Promise.all(
+                data.map(async (pdi) => {
+                    try {
+                        const userData = await userService.getUserById(pdi.idDestinatario);
+                        return { ...pdi, userData };
+                    } catch (error) {
+                        console.error(`Erro ao buscar dados do usuário ${pdi.idDestinatario}:`, error);
+                        return { ...pdi, userData: null };
+                    }
+                })
+            );
+            setPdis(pdIsWithUsers);
         } catch (err) {
             setError('Erro ao carregar a lista de PDIs.');
             console.error('Erro ao buscar PDIs:', err);
-            setPdis([]); // Limpa a lista em caso de erro
+            setPdis([]);
         } finally {
             setLoading(false);
         }
@@ -236,26 +249,22 @@ const AllPDIs = () => {
                         <div key={pdi.id} className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-4">
-                                    {/* Inicial do nome do destinatário - assumindo que o destinatário está na API */}
                                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                        {/* Precisamos buscar o nome do destinatário. Por enquanto, um placeholder ou inicial do id? Melhor buscar info do destinatário */}
-                                        {pdi.destinatario ? pdi.destinatario.toString().charAt(0) : 'U'}
+                                        {pdi.userData ? pdi.userData.nome.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                     <div>
-                                        {/* Nome e cargo do destinatário - precisamos buscar essas informações */}
-                                        <h3 className="text-lg font-semibold">Colaborador ID: {pdi.z}</h3> {/* Placeholder */}
-                                        <p className="text-sm text-gray-600">Cargo • Departamento</p> {/* Placeholder */}
+                                        <h3 className="text-lg font-semibold">{pdi.userData ? pdi.userData.nome : 'Usuário não encontrado'}</h3>
+                                        <p className="text-sm text-gray-600">{pdi.userData ? `${pdi.userData.cargo} • ${pdi.userData.setor}` : 'Cargo • Departamento'}</p>
                                     </div>
                                 </div>
                                 {/* Status do PDI */}
-                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                                    pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
+                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
                                     pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
-                                    pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
-                                    pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
-                                    pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
-                                    'bg-gray-100 text-gray-800'
-                                }`}>
+                                        pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
+                                            pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
+                                                pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                    }`}>
                                     {dictionary[pdi.status] || pdi.status}
                                 </span>
                             </div>
