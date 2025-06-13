@@ -3,32 +3,35 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import pdiService from '../../services/pdiService'; // Importando o serviço de PDI
+import pdiService from '../../services/pdiService';
 import { userService } from '../../services/userService';
-import CreatePdiModal from './CreatePdiModal'; // Importando o modal
+import CreatePdiModal from './CreatePdiModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { dictionary, formatDate } from '../../utils/Dictionary'; // Importando dictionary e formatDate
-
-// Ícones (exemplo, pode precisar ajustar os caminhos ou usar lucide-react se disponível)
-import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react'; // Adicionado ícone Eye
+import { dictionary, formatDate } from '../../utils/Dictionary';
+import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react';
 
 const AllPDIs = () => {
     const { user } = useAuth();
     const [pdis, setPdis] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showCreateModal, setShowCreateModal] = useState(false); // Estado para controlar o modal
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('todos');
-    const [loadingDepartments, setLoadingDepartments] = useState(false);
-    const [selectedStatus, setSelectedStatus] = useState('ATIVO'); // Novo estado para controlar o status selecionado
+    const [selectedStatus, setSelectedStatus] = useState('ATIVO');
 
-    // Mover a função fetchPdis para fora do useEffect
     const fetchPdis = async () => {
         try {
             setLoading(true);
             const data = await pdiService.getAllPdis();
             setPdis(data);
+
+            const uniqueDepartments = [...new Set(data.map(pdi => pdi.destinatario?.setor).filter(Boolean))];
+            const departmentOptions = uniqueDepartments.map(dept => ({
+                value: dept,
+                label: dept
+            }));
+            setDepartments(departmentOptions);
         } catch (err) {
             setError('Erro ao carregar a lista de PDIs.');
             console.error('Erro ao buscar PDIs:', err);
@@ -38,32 +41,9 @@ const AllPDIs = () => {
         }
     };
 
-    // Função para buscar usuários do departamento
-    const fetchDepartments = async () => {
-        if (!user?.id) return;
-
-        setLoadingDepartments(true);
-        try {
-            const users = await pdiService.getUsersByDepartment(user.id);
-            // Criar um Set de departamentos únicos (strings)
-            const uniqueDepartmentStrings = [...new Set(users.map(user => user.setor))];
-            // Transformar em array de objetos { value: string, label: string }
-            const departmentObjects = uniqueDepartmentStrings.map(dept => ({
-                value: dept,
-                label: dept
-            }));
-            setDepartments(departmentObjects); // Define o estado com o novo formato
-        } catch (err) {
-            console.error('Erro ao buscar departamentos:', err);
-        } finally {
-            setLoadingDepartments(false);
-        }
-    };
-
     useEffect(() => {
         fetchPdis();
-        fetchDepartments();
-    }, [user?.id]); // Array de dependências vazio para rodar apenas uma vez ao montar
+    }, []);
 
     const handleOpenCreateModal = () => {
         setShowCreateModal(true);
@@ -71,27 +51,21 @@ const AllPDIs = () => {
 
     const handleCloseCreateModal = () => {
         setShowCreateModal(false);
-        // Opcional: recarregar a lista de PDIs após fechar o modal caso um novo PDI tenha sido criado com sucesso
-        // fetchPdis();
     };
 
     const handlePdiCreatedSuccess = (newPdi) => {
-        // Lógica a ser executada após a criação bem-sucedida de um PDI
         console.log('Novo PDI criado com sucesso:', newPdi);
-        handleCloseCreateModal(); // Fechar o modal
-        fetchPdis(); // Recarregar a lista de PDIs - agora acessível
+        handleCloseCreateModal();
+        fetchPdis();
     };
 
-    // Função para filtrar PDIs baseado no departamento e status selecionados
     const filteredPdis = React.useMemo(() => {
         let filtered = pdis;
 
-        // Filtro por departamento
         if (selectedDepartment !== 'todos') {
             filtered = filtered.filter(pdi => pdi.destinatario?.setor === selectedDepartment);
         }
 
-        // Filtro por status
         if (selectedStatus === 'ATIVO') {
             filtered = filtered.filter(pdi => pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO');
         } else {
@@ -114,11 +88,7 @@ const AllPDIs = () => {
                     </Button>
                 </div>
             </div>
-
             <p className="text-gray-600">Visualize e gerencie todos os Planos de Desenvolvimento Individual</p>
-
-            {/* Seção de Estatísticas/Cards - Pode precisar de dados reais da API */}
-            {/* Por enquanto, mantemos os valores fixos ou podemos calcular a partir da lista de PDIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -167,36 +137,30 @@ const AllPDIs = () => {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {/* Calcular colaboradores únicos com PDI (Implementar cálculo) */}
                         <div className="text-2xl font-bold">{new Set(pdis.map(p => p.idDestinatario)).size}</div>
                         <p className="text-xs text-muted-foreground">% do total de colaboradores (Implementar cálculo)</p>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Seção de Filtros */}
             <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Filtros</h2>
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="flex-1 w-full md:w-auto">
                         <label htmlFor="departamento" className="block text-sm font-medium text-gray-700">Departamento</label>
-                        <Select
+                        <select
+                            id="departamento"
                             value={selectedDepartment}
-                            onValueChange={setSelectedDepartment}
-                            disabled={loadingDepartments}
+                            onChange={(e) => setSelectedDepartment(e.target.value)}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                         >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Todos" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="todos">Todos</SelectItem>
-                                {departments.map((dept, index) => (
-                                    <SelectItem key={index} value={dept.value}>
-                                        {dept.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            <option value="todos">Todos os departamentos</option>
+                            {departments.map((dept) => (
+                                <option key={dept.value} value={dept.value}>
+                                    {dept.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex-1 w-full md:w-auto">
                         <label htmlFor="busca" className="block text-sm font-medium text-gray-700">Busca</label>
@@ -214,11 +178,9 @@ const AllPDIs = () => {
                         </div>
                     </div>
                 </div>
-                {/* Tabs de Status */}
                 <div className="mt-6">
                     <div className="sm:hidden">
                         <label htmlFor="tabs" className="sr-only">Select a tab</label>
-                        {/* Substituir por componente Select real se necessário */}
                         <Select>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Ativos" />
@@ -256,8 +218,6 @@ const AllPDIs = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Lista de PDIs */}
             {loading && <p className="text-center text-gray-600">Carregando PDIs...</p>}
             {error && <p className="text-center text-red-600">{error}</p>}
             {!loading && !error && filteredPdis.length === 0 && (
@@ -270,14 +230,15 @@ const AllPDIs = () => {
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                        {pdi.destinatario ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
+                                        {pdi.destinatario?.nome ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold">{pdi.destinatario ? pdi.destinatario.nome : 'Usuário não encontrado'}</h3>
-                                        <p className="text-sm text-gray-600">{pdi.destinatario ? `${pdi.destinatario.cargo} • ${pdi.destinatario.setor}` : 'Cargo • Departamento'}</p>
+                                        <h3 className="text-lg font-semibold">{pdi.destinatario?.nome || 'Usuário não encontrado'}</h3>
+                                        <p className="text-sm text-gray-600">
+                                            {pdi.destinatario?.cargo} • {pdi.destinatario?.setor}
+                                        </p>
                                     </div>
                                 </div>
-                                {/* Status do PDI */}
                                 <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
                                     pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
                                         pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
@@ -288,26 +249,19 @@ const AllPDIs = () => {
                                     {dictionary[pdi.status] || pdi.status}
                                 </span>
                             </div>
-                            {/* Título e descrição do PDI */}
                             <h4 className="text-md font-semibold mb-2">{pdi.titulo}</h4>
-                            {/* Datas do PDI */}
                             <div className="flex justify-between text-sm text-gray-600 mb-4">
                                 <span>Início: {formatDate(pdi.dataInicio)}</span>
                                 <span>Término: {formatDate(pdi.dataFim)}</span>
                             </div>
-                            {/* Barra de Progresso (Calculo a partir dos marcos - Implementar) */}
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Progresso</label>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                    {/* Calcular e definir o width da barra de progresso */}
-                                    {/* Exemplo: style={{ width: '65%' }} */}
                                     <div className="bg-blue-600 h-2 rounded-full" style={{ width: '0%' }}></div> {/* Placeholder */}
                                 </div>
                                 <p className="text-sm text-gray-600 text-right mt-1">0%</p> {/* Placeholder */}
                             </div>
-                            {/* Link para Visualizar PDI individual */}
                             <div className="text-right">
-                                {/* Link para a página do PDI individual. Precisamos de uma rota para isso. */}
                                 <Link to={`/all-pdi/${pdi.id}`} className="text-blue-600 hover:underline flex items-center justify-end">
                                     <Eye className="mr-1 h-4 w-4" /> Visualizar
                                 </Link>
@@ -317,12 +271,12 @@ const AllPDIs = () => {
                 </div>
             )}
 
-            {/* Renderiza o modal APENAS quando showCreateModal for true */}
             {showCreateModal && (
                 <CreatePdiModal
                     isOpen={showCreateModal}
                     onClose={handleCloseCreateModal}
                     onSuccess={handlePdiCreatedSuccess}
+                    userId={user?.id}
                 />
             )}
         </div>
