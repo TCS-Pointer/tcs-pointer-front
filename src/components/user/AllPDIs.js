@@ -9,6 +9,7 @@ import CreatePdiModal from './CreatePdiModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { dictionary, formatDate } from '../../utils/Dictionary';
 import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react';
+import PdiDetalhesModal from './PdiDetalhesModal';
 
 const AllPDIs = () => {
     const { user } = useAuth();
@@ -19,6 +20,7 @@ const AllPDIs = () => {
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('todos');
     const [selectedStatus, setSelectedStatus] = useState('ATIVO');
+    const [selectedPdi, setSelectedPdi] = useState(null);
 
     const fetchPdis = async () => {
         try {
@@ -262,9 +264,12 @@ const AllPDIs = () => {
                                 <p className="text-sm text-gray-600 text-right mt-1">0%</p> {/* Placeholder */}
                             </div>
                             <div className="text-right">
-                                <Link to={`/all-pdi/${pdi.id}`} className="text-blue-600 hover:underline flex items-center justify-end">
+                                <button
+                                    className="text-blue-600 hover:underline flex items-center justify-end"
+                                    onClick={() => setSelectedPdi(pdi)}
+                                >
                                     <Eye className="mr-1 h-4 w-4" /> Visualizar
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -279,6 +284,13 @@ const AllPDIs = () => {
                     userId={user?.id}
                 />
             )}
+
+            <PdiDetalhesModal
+                isOpen={!!selectedPdi}
+                onClose={() => setSelectedPdi(null)}
+                pdi={selectedPdi}
+                onUpdate={fetchPdis}
+            />
         </div>
     );
 };
