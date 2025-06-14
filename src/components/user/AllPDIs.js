@@ -259,20 +259,28 @@ const AllPDIs = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
-                                        pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
-                                            pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
-                                                pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
-                                                    pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
-                                                        'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {dictionary[pdi.status] || pdi.status}
-                                    </span>
+                                    <div>
+                                        <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
+                                            pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
+                                                pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
+                                                    pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
+                                                        pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                            }`}>
+                                            {dictionary[pdi.status] || pdi.status}
+                                        </span>
+                                    </div>
                                 </div>
-                                <h4 className="text-md font-semibold mb-2">{pdi.titulo}</h4>
+                                <h4 className="text-xl font-bold mb-4">{pdi.titulo}</h4>
                                 <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                    <span>Início: {formatDate(pdi.dataInicio)}</span>
-                                    <span>Término: {formatDate(pdi.dataFim)}</span>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs mb-1">Início</span>
+                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dataInicio)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs mb-1">Término</span>
+                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dataFim)}</span>
+                                    </div>
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Progresso</label>
@@ -283,7 +291,7 @@ const AllPDIs = () => {
                                 </div>
                                 <div className="text-right">
                                     <button
-                                        className="text-blue-600 hover:underline flex items-center justify-end"
+                                        className="text-blue-600 hover:underline inline-flex items-center justify-end"
                                         onClick={() => setSelectedPdi(pdi)}
                                     >
                                         <Eye className="mr-1 h-4 w-4" /> Visualizar
