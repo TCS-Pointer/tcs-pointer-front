@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { dictionary, formatDate } from "../../utils/Dictionary";
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
@@ -53,7 +54,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                     pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
                                         'bg-gray-100 text-gray-800'
                         }`}>
-                        {pdi.status}
+                        {dictionary[pdi.status] || pdi.status}
                     </span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{pdi.titulo}</h3>
@@ -87,12 +88,12 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                         <div className="flex justify-between text-sm text-gray-600 mb-4">
                             <div>
                                 <b>Período</b><br />
-                                <span>Início: {pdi.dataInicio}</span><br />
-                                <span>Término: {pdi.dataFim}</span>
+                                <span>Início: {formatDate(pdi.dataInicio)}</span><br />
+                                <span>Término: {formatDate(pdi.dataFim)}</span>
                             </div>
                             <div>
                                 <b>Gestor Responsável</b><br />
-                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span> Maria Santos</span>
+                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{pdi?.idUsuario}</span>
                             </div>
                         </div>
                         <div className="flex gap-8 text-sm mt-4">
@@ -111,18 +112,22 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                         <div>
                                             <span className="font-semibold">{idx + 1}. {marco.titulo}</span>
                                             <p className="text-sm text-gray-600">{marco.descricao}</p>
-                                            <span className="text-xs text-gray-500">Prazo: {marco.prazo}</span>
+                                            <span className="text-xs text-gray-500">Prazo: {formatDate(marco.dtFinal)}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${marco.status === 'CONCLUIDO' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}`}>{marco.status}</span>
+                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${marco.status === 'CONCLUIDO' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}`}>
+                                                {dictionary[marco.status] || marco.status}
+                                            </span>
                                             {marco.status !== 'CONCLUIDO' && (
-                                                <button
-                                                    className="ml-2 px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
-                                                    disabled={loadingMarco === marco.id}
-                                                    onClick={() => handleConcluirMarco(marco.id)}
-                                                >
-                                                    {loadingMarco === marco.id ? 'Salvando...' : 'Marcar como concluído'}
-                                                </button>
+                                                <label className="flex items-center gap-1 ml-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={false}
+                                                        disabled={loadingMarco === marco.id}
+                                                        onChange={() => handleConcluirMarco(marco.id)}
+                                                    />
+                                                    <span className="text-xs">Marcar como concluído</span>
+                                                </label>
                                             )}
                                         </div>
                                     </li>
