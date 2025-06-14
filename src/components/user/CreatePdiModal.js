@@ -5,6 +5,7 @@ import pdiService from '../../services/pdiService';
 import { useAuth } from '../../contexts/AuthContext'; // Importando o contexto de autenticação
 import { jwtDecode } from 'jwt-decode';
 import { getUsuarioByKeycloakId } from "../../services/userService";
+import { formatDate } from '../../utils/Dictionary';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth(); // Obtendo o usuário atual do contexto
@@ -377,7 +378,9 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                         <div>
                                             <p className="font-medium">{marco.titulo}</p>
                                             <p className="text-sm text-gray-600">{marco.descricao}</p>
-                                            <p className="text-xs text-gray-500">Data Final: {marco.dtFinal}</p>
+                                            <p className="text-xs text-gray-500">
+                                                Data Final: {formatDate(marco.dtFinal)}
+                                            </p>
                                         </div>
                                         <button onClick={() => handleRemoveMarco(index)} className="text-red-500 hover:text-red-700 text-sm" disabled={loading}>Remover</button>
                                     </div>
