@@ -21,6 +21,7 @@ const AllPDIs = () => {
     const [selectedDepartment, setSelectedDepartment] = useState('todos');
     const [selectedStatus, setSelectedStatus] = useState('ATIVO');
     const [selectedPdi, setSelectedPdi] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchPdis = async () => {
         try {
@@ -74,8 +75,19 @@ const AllPDIs = () => {
             filtered = filtered.filter(pdi => pdi.status === selectedStatus);
         }
 
+        if (searchQuery) {
+            const lowerCaseQuery = searchQuery.toLowerCase();
+            filtered = filtered.filter(pdi => {
+                const matchesTitle = pdi.titulo.toLowerCase().includes(lowerCaseQuery);
+                const matchesDescription = pdi.descricao.toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioName = pdi.destinatario?.nome?.toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioEmail = pdi.destinatario?.email?.toLowerCase().includes(lowerCaseQuery);
+                return matchesTitle || matchesDescription || matchesDestinatarioName || matchesDestinatarioEmail;
+            });
+        }
+
         return filtered;
-    }, [pdis, selectedDepartment, selectedStatus]);
+    }, [pdis, selectedDepartment, selectedStatus, searchQuery]);
 
     return (
         <div className="space-y-6">
@@ -175,7 +187,9 @@ const AllPDIs = () => {
                                 name="busca"
                                 id="busca"
                                 className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                placeholder="Buscar PDI ou colaborador..."
+                                placeholder="Filtrar PDI por nome, email, descrição..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>
@@ -227,52 +241,57 @@ const AllPDIs = () => {
             )}
             {!loading && !error && filteredPdis.length > 0 && (
                 <div className="space-y-6">
-                    {filteredPdis.map(pdi => (
-                        <div key={pdi.id} className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                        {pdi.destinatario?.nome ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
+                    {filteredPdis.map(pdi => {
+                        const totalMarcos = pdi.marcos ? pdi.marcos.length : 0;
+                        const concluidos = pdi.marcos ? pdi.marcos.filter(m => m.status === 'CONCLUIDO' || m.status === 'Concluído').length : 0;
+                        const progresso = totalMarcos > 0 ? Math.round((concluidos / totalMarcos) * 100) : 0;
+                        return (
+                            <div key={pdi.id} className="bg-white rounded-lg shadow p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                            {pdi.destinatario?.nome ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold">{pdi.destinatario?.nome || 'Usuário não encontrado'}</h3>
+                                            <p className="text-sm text-gray-600">
+                                                {pdi.destinatario?.cargo} • {pdi.destinatario?.setor}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold">{pdi.destinatario?.nome || 'Usuário não encontrado'}</h3>
-                                        <p className="text-sm text-gray-600">
-                                            {pdi.destinatario?.cargo} • {pdi.destinatario?.setor}
-                                        </p>
+                                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
+                                        pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
+                                            pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
+                                                pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
+                                                    pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
+                                                        'bg-gray-100 text-gray-800'
+                                        }`}>
+                                        {dictionary[pdi.status] || pdi.status}
+                                    </span>
+                                </div>
+                                <h4 className="text-md font-semibold mb-2">{pdi.titulo}</h4>
+                                <div className="flex justify-between text-sm text-gray-600 mb-4">
+                                    <span>Início: {formatDate(pdi.dataInicio)}</span>
+                                    <span>Término: {formatDate(pdi.dataFim)}</span>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Progresso</label>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progresso}%` }}></div>
                                     </div>
+                                    <p className="text-sm text-gray-600 text-right mt-1">{progresso}%</p>
                                 </div>
-                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
-                                    pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
-                                        pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
-                                            pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
-                                                pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {dictionary[pdi.status] || pdi.status}
-                                </span>
-                            </div>
-                            <h4 className="text-md font-semibold mb-2">{pdi.titulo}</h4>
-                            <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                <span>Início: {formatDate(pdi.dataInicio)}</span>
-                                <span>Término: {formatDate(pdi.dataFim)}</span>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Progresso</label>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '0%' }}></div> {/* Placeholder */}
+                                <div className="text-right">
+                                    <button
+                                        className="text-blue-600 hover:underline flex items-center justify-end"
+                                        onClick={() => setSelectedPdi(pdi)}
+                                    >
+                                        <Eye className="mr-1 h-4 w-4" /> Visualizar
+                                    </button>
                                 </div>
-                                <p className="text-sm text-gray-600 text-right mt-1">0%</p> {/* Placeholder */}
                             </div>
-                            <div className="text-right">
-                                <button
-                                    className="text-blue-600 hover:underline flex items-center justify-end"
-                                    onClick={() => setSelectedPdi(pdi)}
-                                >
-                                    <Eye className="mr-1 h-4 w-4" /> Visualizar
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
