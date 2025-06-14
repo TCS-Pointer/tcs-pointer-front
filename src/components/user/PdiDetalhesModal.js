@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
 import { dictionary, formatDate } from "../../utils/Dictionary";
+import { Calendar, CheckCircle, Clock } from 'lucide-react';
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
@@ -84,54 +85,60 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                         <div className="flex justify-between text-sm text-gray-600 mb-4">
                             <div>
                                 <b>Período</b><br />
-                                <span>Início: {formatDate(pdi.dataInicio)}</span><br />
-                                <span>Término: {formatDate(pdi.dataFim)}</span>
+                                <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dataInicio)}</span><br />
+                                <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dataFim)}</span>
                             </div>
                             <div>
                                 <b>Gestor Responsável</b><br />
                                 <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{pdi?.idUsuario}</span>
                             </div>
                         </div>
-                        <div className="flex gap-8 text-sm mt-4">
-                            <span>✔️ Total de marcos: {totalMarcos}</span>
-                            <span>✔️ Marcos concluídos: {concluidos}</span>
-                            <span>🕒 Marcos pendentes: {totalMarcos - concluidos}</span>
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <h4 className="font-semibold text-gray-800 mb-2">Resumo dos Marcos</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
+                                <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Total de marcos: {totalMarcos}</span>
+                                <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Marcos concluídos: {concluidos}</span>
+                                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-yellow-500" /> Marcos pendentes: {totalMarcos - concluidos}</span>
+                            </div>
                         </div>
                     </div>
                 )}
                 {activeTab === 'marcos' && (
-                    <div>
-                        <ul className="divide-y divide-gray-200">
-                            {marcos.length > 0 ? (
-                                marcos.map((marco, idx) => (
-                                    <li key={marco.id || idx} className="py-3 flex items-center justify-between">
-                                        <div>
-                                            <span className="font-semibold">{idx + 1}. {marco.titulo}</span>
-                                            <p className="text-sm text-gray-600">{marco.descricao}</p>
-                                            <span className="text-xs text-gray-500">Prazo: {formatDate(marco.dtFinal)}</span>
+                    <div className="pt-4 space-y-4">
+                        {marcos.length > 0 ? (
+                            marcos.map((marco, idx) => (
+                                <div key={marco.id || idx} className="bg-white rounded-lg shadow-sm border border-gray-200">
+                                    <div className="flex items-start mb-2 px-6 pt-4">
+                                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 flex-shrink-0">
+                                            {idx + 1}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${marco.status === 'CONCLUIDO' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}`}>
-                                                {dictionary[marco.status] || marco.status}
-                                            </span>
-                                            {marco.status !== 'CONCLUIDO' && (
-                                                <label className="flex items-center gap-1 ml-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={false}
-                                                        disabled={loadingMarco === marco.id}
-                                                        onChange={() => handleConcluirMarco(marco.id)}
-                                                    />
-                                                    <span className="text-xs">Marcar como concluído</span>
-                                                </label>
-                                            )}
+                                        <div className="flex-grow">
+                                            <h4 className="font-semibold text-gray-800 text-base mb-1">{marco.titulo}</h4>
+                                            <p className="text-sm text-gray-600 mb-1">{marco.descricao}</p>
+                                            <p className="text-xs text-gray-500">Prazo: {formatDate(marco.dtFinal)}</p>
                                         </div>
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="py-3 text-gray-500">Nenhum marco cadastrado.</li>
-                            )}
-                        </ul>
+                                    </div>
+                                    <div className="flex justify-end items-center gap-4 mt-2 pb-4 px-6">
+                                        <span className={`px-2 py-1 text-xs rounded-full ${marco.status === 'CONCLUIDO' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}`}>
+                                            {dictionary[marco.status] || marco.status}
+                                        </span>
+                                        {marco.status !== 'CONCLUIDO' && (
+                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={false}
+                                                    disabled={loadingMarco === marco.id}
+                                                    onChange={() => handleConcluirMarco(marco.id)}
+                                                />
+                                                <span className="text-sm text-gray-700">Marcar como concluído</span>
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="py-3 text-gray-500 text-center">Nenhum marco cadastrado.</p>
+                        )}
                     </div>
                 )}
                 <div className="flex justify-end gap-2 mt-6">
