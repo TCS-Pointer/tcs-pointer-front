@@ -30,7 +30,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
 
     if (!isOpen || !pdi) return null;
 
-    // Cálculo de progresso
     const totalMarcos = marcos.length;
     const concluidos = marcos.filter(m => m.status === 'CONCLUIDO' || m.status === 'Concluído').length;
     const progresso = totalMarcos > 0 ? Math.round((concluidos / totalMarcos) * 100) : 0;
@@ -58,7 +57,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                     </span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{pdi.titulo}</h3>
-                {/* Barra de progresso */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Progresso Geral</label>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -66,7 +64,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                     </div>
                     <div className="text-right text-sm text-gray-700 font-semibold mt-1">{progresso}%</div>
                 </div>
-                {/* Abas */}
                 <div className="flex mb-4">
                     <button
                         className={`flex-1 py-2 px-4 rounded-tl rounded-bl font-semibold ${activeTab === 'info' ? 'bg-gray-100' : 'bg-gray-200'} border border-b-0`}
@@ -81,7 +78,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                         Marcos e Etapas
                     </button>
                 </div>
-                {/* Conteúdo das Abas */}
                 {activeTab === 'info' && (
                     <div>
                         <p className="mb-4 text-gray-700"><b>Descrição e Objetivos</b><br />{pdi.descricao}</p>
