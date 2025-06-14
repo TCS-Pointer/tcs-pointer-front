@@ -7,9 +7,12 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
     const [marcos, setMarcos] = useState(pdi?.marcos || []);
     const [loadingMarco, setLoadingMarco] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editablePdi, setEditablePdi] = useState(pdi || {});
 
     React.useEffect(() => {
         setMarcos(pdi?.marcos || []);
+        setEditablePdi(pdi || {});
     }, [pdi]);
 
     const handleConcluirMarco = async (idMarco) => {
@@ -26,6 +29,28 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             alert('Erro ao atualizar status do marco!');
         } finally {
             setLoadingMarco(null);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            const updatedPdi = {
+                titulo: editablePdi.titulo,
+                descricao: editablePdi.descricao,
+                dataInicio: editablePdi.dataInicio,
+                dataFim: editablePdi.dataFim,
+                iDdestinatario: editablePdi.iDdestinatario || pdi.iDdestinatario,
+            };
+
+            const response = await api.put(`/pdi/${pdi.id}`, updatedPdi);
+            console.log('API Response Data:', response.data);
+            setEditablePdi(response.data.content);
+            alert('PDI atualizado com sucesso!');
+            setIsEditing(false);
+            if (onUpdate) onUpdate();
+        } catch (error) {
+            console.error('Erro ao atualizar PDI:', error);
+            alert('Erro ao atualizar PDI. Verifique os dados e tente novamente.');
         }
     };
 
@@ -47,17 +72,26 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                         <h2 className="text-xl font-bold">{pdi.destinatario?.nome}</h2>
                         <p className="text-sm text-gray-600">{pdi.destinatario?.cargo} • {pdi.destinatario?.setor}</p>
                     </div>
-                    <span className={`ml-auto px-3 py-1 text-sm font-medium rounded-full ${pdi.status === 'ATIVO' || pdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
-                        pdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
-                            pdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
-                                pdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
-                                    pdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
+                    <span className={`ml-auto px-3 py-1 text-sm font-medium rounded-full ${editablePdi.status === 'ATIVO' || editablePdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
+                        editablePdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
+                            editablePdi.status === 'ATRASADO' ? 'bg-red-100 text-red-800' :
+                                editablePdi.status === 'CANCELADO' ? 'bg-yellow-100 text-yellow-800' :
+                                    editablePdi.status === 'PENDENTE' ? 'bg-gray-100 text-gray-800' :
                                         'bg-gray-100 text-gray-800'
                         }`}>
-                        {dictionary[pdi.status] || pdi.status}
+                        {dictionary[editablePdi.status] || editablePdi.status}
                     </span>
                 </div>
-                <h3 className="text-2xl font-bold mb-2">{pdi.titulo}</h3>
+                {isEditing ? (
+                    <input
+                        type="text"
+                        className="w-full text-2xl font-bold mb-2 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={editablePdi.titulo || ''}
+                        onChange={(e) => setEditablePdi({ ...editablePdi, titulo: e.target.value })}
+                    />
+                ) : (
+                    <h3 className="text-2xl font-bold mb-2">{editablePdi.titulo}</h3>
+                )}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Progresso Geral</label>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -81,16 +115,49 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                 </div>
                 {activeTab === 'info' && (
                     <div>
-                        <p className="mb-4 text-gray-700"><b>Descrição e Objetivos</b><br />{pdi.descricao}</p>
+                        {isEditing ? (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição e Objetivos</label>
+                                <textarea
+                                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows="4"
+                                    value={editablePdi.descricao || ''}
+                                    onChange={(e) => setEditablePdi({ ...editablePdi, descricao: e.target.value })}
+                                ></textarea>
+                            </div>
+                        ) : (
+                            <p className="mb-4 text-gray-700"><b>Descrição e Objetivos</b><br />{editablePdi.descricao}</p>
+                        )}
                         <div className="flex justify-between text-sm text-gray-600 mb-4">
                             <div>
                                 <b>Período</b><br />
-                                <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dataInicio)}</span><br />
-                                <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dataFim)}</span>
+                                {isEditing ? (
+                                    <>
+                                        <label className="block text-xs font-medium text-gray-500 mt-2">Início:</label>
+                                        <input
+                                            type="date"
+                                            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                            value={editablePdi.dataInicio ? new Date(editablePdi.dataInicio).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataInicio: e.target.value })}
+                                        />
+                                        <label className="block text-xs font-medium text-gray-500 mt-2">Término:</label>
+                                        <input
+                                            type="date"
+                                            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                            value={editablePdi.dataFim ? new Date(editablePdi.dataFim).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataFim: e.target.value })}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dataInicio)}</span><br />
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dataFim)}</span>
+                                    </>
+                                )}
                             </div>
                             <div>
                                 <b>Gestor Responsável</b><br />
-                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{pdi?.idUsuario}</span>
+                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{editablePdi?.idUsuario}</span>
                             </div>
                         </div>
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -142,7 +209,20 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                     </div>
                 )}
                 <div className="flex justify-end gap-2 mt-6">
-                    <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={onClose}>Fechar</button>
+                    {isEditing ? (
+                        <>
+                            <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleSave}>Salvar</button>
+                            <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => {
+                                setIsEditing(false);
+                                setEditablePdi(pdi);
+                            }}>Cancelar</button>
+                        </>
+                    ) : (
+                        <>
+                            <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => setIsEditing(true)}>Editar PDI</button>
+                            <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={onClose}>Fechar</button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
