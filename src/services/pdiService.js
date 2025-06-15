@@ -43,6 +43,16 @@ const pdiService = {
         }
     },
 
+    updateMarco: async (marcoId, marcoData) => {
+        try {
+            const response = await api.put(`/marco-pdi/${marcoId}`, marcoData);
+            return response.data.content; // Assumindo que a API retorna o marco atualizado dentro de 'content'
+        } catch (error) {
+            console.error(`Erro ao atualizar marco ID ${marcoId}:`, error);
+            throw error; // Rejeita a promessa para que o componente possa tratar o erro
+        }
+    },
+
     // Futuramente, podemos adicionar outras funções aqui, como getPdiById, updatePdi, deletePdi, etc.
 };
 
