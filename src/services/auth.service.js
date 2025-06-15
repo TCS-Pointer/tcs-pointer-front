@@ -11,11 +11,13 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
-      },
-      withCredentials: true
+      }
     });
 
-    // Interceptor para adicionar token em todas as requisições
+    this.setupInterceptors();
+  }
+
+  setupInterceptors() {
     this.api.interceptors.request.use(
       (config) => {
         const token = this.getToken();
@@ -24,31 +26,38 @@ class AuthService {
         }
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
   }
 
-  async login(email, senha) {
+  async login(username, password) {
     try {
-      const loginData = {
-        clientId: CLIENT_ID,
-        username: email,
-        password: senha,
-        grantType: 'password'
-      };
+      const response = await this.api.post('/token', {
+        username,
+        password
+      });
 
-      const response = await this.api.post('/token', loginData);
-      const token = response.data.content.access_token;
-      localStorage.setItem('access_token', token);
-      const expiresIn = response.data.content.expires_in;
-      localStorage.setItem('expires_in', expiresIn);
+      const { access_token, refresh_token, expires_in } = response.data.content;
+      
+      this.setTokens(access_token, refresh_token, expires_in);
+      
+      const userInfo = this.decodeToken(access_token);
+      console.log('Token decodificado:', userInfo); // Debug
 
-      return this.decodeToken(token);
+      if (!this.validateUserRoles(userInfo)) {
+        throw new Error('Usuário não possui permissão para acessar o sistema');
+      }
+
+      return userInfo;
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  setTokens(accessToken, refreshToken, expiresIn) {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem('token_expires', Date.now() + (expiresIn * 1000));
   }
 
   decodeToken(token) {
@@ -58,39 +67,92 @@ class AuthService {
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
       ).join(''));
-      const payload = JSON.parse(jsonPayload);
-      const now = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp < now) {
-        return null; // Token expirado
-      }
-      return {
-        id: payload.sub,
-        email: payload.email,
-        nome: payload.name,
-        roles: payload.realm_access?.roles || []
-      };
+
+      return JSON.parse(jsonPayload);
     } catch (error) {
+      console.error('Erro ao decodificar token:', error);
       return null;
     }
   }
 
-  logout() {
-    localStorage.removeItem('access_token');
+  validateUserRoles(userInfo) {
+    if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
+      console.error('Token não contém roles:', userInfo);
+      return false;
+    }
+
+    const validRoles = ['admin', 'colaborador', 'gestor'];
+    const userRoles = userInfo.realm_access.roles;
+    console.log('Roles do usuário:', userRoles); // Debug
+
+    const hasValidRole = userRoles.some(role => validRoles.includes(role));
+    if (!hasValidRole) {
+      console.error('Usuário não possui roles válidas:', userRoles);
+    }
+    return hasValidRole;
   }
 
-  getCurrentUser() {
+  getUserRole() {
     const token = this.getToken();
-    if (!token) return null;
-    return this.decodeToken(token);
+    if (!token) {
+      console.log('Nenhum token encontrado');
+      return null;
+    }
+
+    const userInfo = this.decodeToken(token);
+    if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
+      console.error('Token inválido ou sem roles:', userInfo);
+      return null;
+    }
+
+    const roles = userInfo.realm_access.roles;
+    console.log('Roles disponíveis:', roles); // Debug
+
+    // Prioridade de roles: admin > gestor > colaborador
+    if (roles.includes('admin')) {
+      console.log('Role selecionada: admin');
+      return 'admin';
+    }
+    if (roles.includes('gestor')) {
+      console.log('Role selecionada: gestor');
+      return 'gestor';
+    }
+    if (roles.includes('colaborador')) {
+      console.log('Role selecionada: colaborador');
+      return 'colaborador';
+    }
+    
+    console.error('Nenhuma role válida encontrada');
+    return null;
   }
 
-  isAuthenticated() {
-    const token = this.getToken();
-    return !!token;
+  isTokenExpired() {
+    const expiresAt = localStorage.getItem('token_expires');
+    if (!expiresAt) return true;
+    
+    return Date.now() >= parseInt(expiresAt);
   }
 
   getToken() {
     return localStorage.getItem('access_token');
+  }
+
+  logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('token_expires');
+  }
+
+  isAuthenticated() {
+    const token = this.getToken();
+    if (!token) return false;
+    
+    if (this.isTokenExpired()) {
+      this.logout();
+      return false;
+    }
+
+    return true;
   }
 
   handleError(error) {

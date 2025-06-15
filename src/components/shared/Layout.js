@@ -3,6 +3,39 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import pointerIcon from '../../components/ico/image.png';
 
+const ICONS = {
+  dashboard: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+  feedbacks: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>,
+  comunicados: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>,
+  pdi: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
+  users: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+  relatorios: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+};
+
+const MENU_CONFIG = {
+  admin: [
+    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
+    { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
+    { to: "/admin/usuarios", label: "Usuários", icon: ICONS.users },
+    { to: "/admin/relatorios", label: "Relatórios", icon: ICONS.relatorios },
+  ],
+  gestor: [
+    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
+    { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
+    // Adicione menus exclusivos de gestor se houver
+  ],
+  colaborador: [
+    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
+    { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
+  ]
+};
+
 const NavItem = ({ to, icon, children, isActive }) => (
   <Link
     to={to}
@@ -19,9 +52,8 @@ const Layout = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const isAdmin = user?.roles?.includes('admin');
-  const isUser = user?.roles?.includes('user');
-  const showUserMenu = isUser || isAdmin;
+  const role = user?.role || 'colaborador';
+  const menuItems = MENU_CONFIG[role] || MENU_CONFIG['colaborador'];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -33,63 +65,18 @@ const Layout = () => {
             <span className="text-xl font-semibold">Pointer</span>
           </div>
         </div>
-
         <nav className="mt-4 px-2 space-y-1">
-          {/* Menus de Usuário (Dashboard, Feedbacks, Comunicados, Meu PDI) */}
-          {showUserMenu && (
-            <>
+          {menuItems.map(item => (
               <NavItem
-                to="/dashboard"
-                isActive={location.pathname === '/dashboard'}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>}
+              key={item.to}
+              to={item.to}
+              isActive={location.pathname === item.to}
+              icon={item.icon}
               >
-                Dashboard
+              {item.label}
               </NavItem>
-              <NavItem
-                to="/feedbacks"
-                isActive={location.pathname === '/feedbacks'}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>}
-              >
-                Feedbacks
-              </NavItem>
-              <NavItem
-                to="/comunicados"
-                isActive={location.pathname === '/comunicados'}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
-              >
-                Comunicados
-              </NavItem>
-              <NavItem
-                to="/meu-pdi"
-                isActive={location.pathname === '/meu-pdi'}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-              >
-                Meu PDI
-              </NavItem>
-            </>
-          )}
-
-          {/* Menus de Admin (Usuários, Relatórios) */}
-          {isAdmin && (
-            <>
-              <NavItem
-                to="/admin/users"
-                isActive={location.pathname.startsWith('/admin/users')}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-              >
-                Usuários
-              </NavItem>
-              <NavItem
-                to="/admin/relatorios"
-                isActive={location.pathname === '/admin/relatorios'}
-                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-              >
-                Relatórios
-              </NavItem>
-            </>
-          )}
+          ))}
         </nav>
-
         <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <Link to="/perfil" className="flex items-center space-x-2 flex-1 cursor-pointer group hover:bg-gray-100 rounded px-2 py-1 transition-colors">
@@ -119,7 +106,6 @@ const Layout = () => {
           </div>
         </div>
       </aside>
-
       {/* Main content */}
       <main className="flex-1 overflow-auto p-8">
         <Outlet />
