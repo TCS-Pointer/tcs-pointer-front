@@ -3,18 +3,28 @@ import api from '../../services/api';
 import { dictionary, formatDate } from "../../utils/Dictionary";
 import { Calendar, CheckCircle, Clock } from 'lucide-react';
 import pdiService from '../../services/pdiService';
+import Toast from '../ui/Toast';
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
     const [marcos, setMarcos] = useState(pdi?.marcos || []);
     const [loadingMarco, setLoadingMarco] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editablePdi, setEditablePdi] = useState(pdi || {});
+    const [editablePdi, setEditablePdi] = useState({
+        ...pdi,
+        usuario: pdi?.usuario || {},
+        destinatario: pdi?.destinatario || {}
+    });
     const [editableMarcos, setEditableMarcos] = useState([]);
+    const [toast, setToast] = useState(null);
 
     React.useEffect(() => {
         setMarcos(pdi?.marcos || []);
-        setEditablePdi(pdi || {});
+        setEditablePdi({
+            ...pdi,
+            usuario: pdi?.usuario || {},
+            destinatario: pdi?.destinatario || {}
+        });
         setEditableMarcos(pdi?.marcos ? pdi.marcos.map(m => ({ ...m })) : []);
     }, [pdi]);
 
@@ -29,7 +39,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             setMarcos(marcos.map(m => m.id === idMarco ? { ...m, status: 'CONCLUIDO' } : m));
             if (onUpdate) onUpdate();
         } catch (err) {
-            alert('Erro ao atualizar status do marco!');
+            setToast({ message: 'Erro ao atualizar status do marco!', type: 'error' });
         } finally {
             setLoadingMarco(null);
         }
@@ -47,42 +57,40 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
 
             const response = await api.put(`/pdi/${pdi.id}`, updatedPdi);
             console.log('API Response Data:', response.data);
-            setEditablePdi(response.data.content);
+            setEditablePdi({
+                ...response.data.content,
+                usuario: response.data.content?.usuario || {},
+                destinatario: response.data.content?.destinatario || {}
+            });
 
-            // Lógica para salvar os marcos editados
             const marcoUpdatePromises = editableMarcos.map(async (marco) => {
-                // Só tenta atualizar marcos que já existem (que possuem ID)
                 if (marco.id) {
                     const updatedMarcoData = {
                         titulo: marco.titulo,
                         descricao: marco.descricao,
-                        dtFinal: marco.dtFinal, // Sua API espera dtFinal
-                        pdiId: pdi.id // Garante que o pdiId esteja na requisição de marco
+                        dtFinal: marco.dtFinal,
+                        pdiId: pdi.id
                     };
-                    // Retorna a promessa da atualização do marco
                     return pdiService.updateMarco(marco.id, updatedMarcoData);
                 }
-                return Promise.resolve(null); // Retorna uma promessa resolvida para marcos sem ID (se houver, não serão atualizados aqui)
+                return Promise.resolve(null);
             });
 
-            // Aguarda todas as promessas de atualização de marcos
             const updatedMarcosResults = await Promise.all(marcoUpdatePromises);
 
-            // Atualiza o estado 'marcos' com os dados dos marcos que foram editados
-            // Isso é importante para que a UI reflita as mudanças imediatamente
             const newMarcosState = marcos.map(originalMarco => {
                 const updated = updatedMarcosResults.find(result => result && result.id === originalMarco.id);
-                return updated ? updated : originalMarco; // Usa o marco atualizado pela API, ou o original se não foi alterado
+                return updated ? updated : originalMarco;
             });
-            setMarcos(newMarcosState); // Atualiza o estado 'marcos' principal
-            setEditableMarcos(newMarcosState.map(m => ({ ...m }))); // Sincroniza editableMarcos com os novos dados
+            setMarcos(newMarcosState);
+            setEditableMarcos(newMarcosState.map(m => ({ ...m })));
 
-            alert('PDI e Marcos atualizados com sucesso!');
+            setToast({ message: 'PDI e Marcos atualizados com sucesso!', type: 'success' });
             setIsEditing(false);
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error('Erro ao atualizar PDI ou Marcos:', error);
-            alert('Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.');
+            setToast({ message: 'Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.', type: 'error' });
         }
     };
 
@@ -94,15 +102,22 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
                 <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
                 <div className="flex items-center mb-4">
                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
-                        {pdi.destinatario?.nome ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
+                        {editablePdi?.destinatario?.nome ? editablePdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold">{pdi.destinatario?.nome}</h2>
-                        <p className="text-sm text-gray-600">{pdi.destinatario?.cargo} • {pdi.destinatario?.setor}</p>
+                        <h2 className="text-xl font-bold">{editablePdi?.destinatario?.nome}</h2>
+                        <p className="text-sm text-gray-600">{editablePdi?.destinatario?.cargo} • {editablePdi?.destinatario?.setor}</p>
                     </div>
                     <span className={`ml-auto px-3 py-1 text-sm font-medium rounded-full ${editablePdi.status === 'ATIVO' || editablePdi.status === 'EM_ANDAMENTO' ? 'bg-green-100 text-green-800' :
                         editablePdi.status === 'CONCLUIDO' ? 'bg-blue-100 text-blue-800' :
@@ -189,7 +204,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                             </div>
                             <div>
                                 <b>Gestor Responsável</b><br />
-                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{editablePdi?.idUsuario}</span>
+                                <span className="inline-flex items-center gap-2"><span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">MS</span>{editablePdi?.usuario?.nome}</span>
                             </div>
                         </div>
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
