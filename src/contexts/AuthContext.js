@@ -11,12 +11,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          const userInfo = authService.decodeToken(token);
-          if (userInfo) {
-            setUser(userInfo);
+        if (authService.isAuthenticated()) {
+          const userInfo = authService.decodeToken(authService.getToken());
+          const userRole = authService.getUserRole();
+          
+          console.log('Inicializando autenticação:', { userInfo, userRole }); // Debug
+          
+          if (userInfo && userRole) {
+            setUser({ ...userInfo, role: userRole });
           } else {
+            console.error('Falha ao inicializar autenticação:', { userInfo, userRole });
             authService.logout();
             setUser(null);
           }
@@ -37,8 +41,16 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const userInfo = await authService.login(username, password);
-      setUser(userInfo);
-      return userInfo;
+      const userRole = authService.getUserRole();
+      
+      console.log('Login realizado:', { userInfo, userRole }); // Debug
+      
+      if (!userRole) {
+        throw new Error('Usuário não possui permissão para acessar o sistema');
+      }
+      
+      setUser({ ...userInfo, role: userRole });
+      return { userInfo, role: userRole };
     } catch (err) {
       setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
       throw err;
@@ -56,6 +68,8 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
+    isAuthenticated: authService.isAuthenticated(),
+    getUserRole: authService.getUserRole
   };
 
   return (

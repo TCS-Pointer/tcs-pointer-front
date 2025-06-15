@@ -7,6 +7,7 @@ export const userService = {
       const response = await api.get('/api/usuarios', {
         params: {
           page,
+          size: 10,
           ...filters
         }
       });
@@ -22,8 +23,8 @@ export const userService = {
     const response = await api.get(`/api/usuarios/${id}`);
     return response.data.content;
   },
-  getUserByEmail: async (email) => {
-    const response = await api.get(`/api/usuarios/${email}`);
+  getUserByKeycloakId: async (keycloaky) => {
+    const response = await api.get(`/api/usuarios/${keycloaky}`);
     return response.data.content;
   },
 
@@ -41,13 +42,38 @@ export const userService = {
   },
 
 
-  updateUserStatus: async (email) => {
-    const response = await api.post(`/api/usuarios/alterar-status`,  {email: email});
+  updateUserStatus: async (emailChangeStatus, emailSend) => {
+    const response = await api.put(`/api/usuarios/alterar-status`,  {
+      emailChangeStatus: emailChangeStatus,
+      emailSend: emailSend
+    });
     return response.data.content;
   },
 
   verifyEmail: async (email) => {
     return await api.get(`/api/usuarios/verificar-email/${email}`);  
+  },
+
+  // Buscar setores disponíveis
+  getSetores: async () => {
+    try {
+      const response = await api.get('/api/usuarios/setores');
+      return response.data.content;
+    } catch (error) {
+      console.error('Erro na API getSetores:', error);
+      throw error;
+    }
+  },
+
+  // Buscar tipos de usuário disponíveis
+  getTiposUsuario: async () => {
+    try {
+      const response = await api.get('/api/usuarios/estatisticas/tipos');
+      return response.data.content || [];
+    } catch (error) {
+      console.error('Erro na API getTiposUsuario:', error);
+      throw error;
+    }
   },
 
 };  

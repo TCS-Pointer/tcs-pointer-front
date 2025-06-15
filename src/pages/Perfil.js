@@ -37,11 +37,10 @@ const Perfil = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      console.log(user);
-      if (user?.email) {
+      if (user?.sub) {
         setLoading(true);
         try {
-          const data = await userService.getUserByEmail(user.email);
+          const data = await userService.getUserByKeycloakId(user.sub);
           setUserData(data);
         } catch (err) {
           setUserData(null);
@@ -51,7 +50,7 @@ const Perfil = () => {
       }
     };
     fetchUser();
-  }, [user?.email]);
+  }, [user?.sub]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -69,7 +68,7 @@ const Perfil = () => {
       return;
     }
     try {
-      await passwordService.resetPassword(userData.email, novaSenha);
+      await passwordService.resetPassword(userData?.email, novaSenha);
       setMsg({ type: 'success', text: 'Senha alterada com sucesso!' });
       setNovaSenha('');
       setConfirmarSenha('');
@@ -100,7 +99,7 @@ const Perfil = () => {
           Alterar Senha
         </button>
       </div>
-      {tab === 'info' && (
+      {tab === 'info' && userData && (
         <div className="bg-white rounded shadow p-8">
           <div className="flex items-center mb-6">
             <div className="h-24 w-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold shadow mr-8">
@@ -117,27 +116,27 @@ const Perfil = () => {
             <div>
               <div className="text-xl font-semibold text-gray-900">{userData?.nome || 'Usuário'}</div>
               <span className="inline-block mt-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                {userData.tipoUsuario === 'ADMIN' ? 'Administrador' : userData.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
+                {userData?.tipoUsuario === 'ADMIN' ? 'Administrador' : userData?.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
               </span>
             </div>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Email</span>
-              <span className="text-gray-600">{userData.email}</span>
+              <span className="text-gray-600">{userData?.email}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Departamento</span>
-              <span className="text-gray-600">{userData.setor || '-'}</span>
+              <span className="text-gray-600">{userData?.setor || '-'}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-700">Cargo</span>
-              <span className="text-gray-600">{userData.cargo || '-'}</span>
+              <span className="text-gray-600">{userData?.cargo || '-'}</span>
             </div>
           </div>
         </div>
       )}
-      {tab === 'senha' && (
+      {tab === 'senha' && userData && (
         <div className="bg-white rounded shadow p-8">
           <h2 className="text-xl font-bold mb-4">Alterar Senha</h2>
           <div className="bg-gray-50 p-4 rounded mb-4">
@@ -183,6 +182,11 @@ const Perfil = () => {
               Alterar Senha
             </button>
           </form>
+        </div>
+      )}
+      {!loading && !userData && (
+        <div className="bg-white rounded shadow p-8 text-center text-red-600 font-semibold">
+          Não foi possível carregar os dados do usuário.
         </div>
       )}
     </div>

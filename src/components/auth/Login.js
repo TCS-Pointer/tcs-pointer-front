@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthNavigation } from '../../hooks/useAuthNavigation';
 import { useNavigate } from 'react-router-dom';
 import pointerIcon from '../../components/ico/image.png';
 import CenteredToast from '../ui/CenteredToast';
@@ -13,7 +13,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { login, user } = useAuth();
+  const { login } = useAuthNavigation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,15 +23,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const user = await login(data.username, data.password);
-      console.log(user);
-      if (user.roles.includes('admin')) {
-        navigate('/admin');
-      } else if (user.roles.includes('gestor')) {
-        navigate('/gestor');
-      } else {
-        navigate('/');
-      }
+      await login(data.username, data.password);
     } catch (err) {
       console.error('Erro no login:', err);
       if (err.response?.status === 401) {
