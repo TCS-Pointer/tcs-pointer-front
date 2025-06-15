@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { getUsuarioByKeycloakId } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
+import Toast from '../../components/ui/Toast';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -30,6 +31,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const [colaboradoresList, setColaboradoresList] = useState([]);
     const [usersLoading, setUsersLoading] = useState(false);
     const [usersError, setUsersError] = useState(null);
+    const [toast, setToast] = useState(null);
 
     const [idUsuario, setIdUsuario] = useState(null);
 
@@ -107,19 +109,19 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
 
     const handleNextStep = () => {
         if (!formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim) {
-            setError('Por favor, preencha todos os campos das informações básicas.');
+            setToast({ message: 'Por favor, preencha todos os campos das informações básicas.', type: 'error' });
             return;
         }
-        setError(null);
+        setToast(null);
         setStep('milestones');
     };
 
     const handleAddMarco = () => {
         if (!currentMarco.titulo || !currentMarco.descricao || !currentMarco.dtFinal) {
-            setMarcoError('Por favor, preencha todos os campos do marco.');
+            setToast({ message: 'Por favor, preencha todos os campos do marco.', type: 'error' });
             return;
         }
-        setMarcoError(null);
+        setToast(null);
         setFormData(prevData => ({
             ...prevData,
             marcos: [...prevData.marcos, { ...currentMarco, status: 'PENDENTE' }]
@@ -135,11 +137,9 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const handleSavePdi = async () => {
-        // Opcional: validação final antes de salvar o PDI completo
         if (!formData.marcos || formData.marcos.length === 0) {
-            // Podemos exigir pelo menos um marco, ou permitir PDI sem marcos iniciais
-            // setError('Por favor, adicione pelo menos um marco.');
-            // return;
+            setToast({ message: 'Por favor, adicione pelo menos um marco.', type: 'error' });
+            return;
         }
 
         setLoading(true);
@@ -163,10 +163,12 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             console.log('Enviando PDI:', pdiData);
             const newPdi = await pdiService.createPdi(pdiData);
             console.log('PDI criado com sucesso:', newPdi);
+            setToast({ message: 'PDI criado com sucesso!', type: 'success' });
+            await new Promise(resolve => setTimeout(resolve, 1500));
             onSuccess(newPdi);
             handleClose();
         } catch (err) {
-            setError('Erro ao criar o PDI. Verifique os dados e tente novamente.');
+            setToast({ message: 'Erro ao criar o PDI. Verifique os dados e tente novamente.', type: 'error' });
             console.error('Erro na criação do PDI:', err);
         } finally {
             setLoading(false);
@@ -188,6 +190,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         setMarcoError(null);
         setUsersError(null);
         setLoading(false);
+        setToast(null);
         onClose();
     };
 
@@ -197,6 +200,13 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-xl font-semibold text-gray-900">Novo Plano de Desenvolvimento</h3>
@@ -213,7 +223,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                     <button
                         className={`flex-1 text-center py-2 px-4 ${step === 'milestones' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
                         onClick={() => setStep('milestones')}
-                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim} // Desabilita se informações básicas estiverem incompletas ou salvando/carregando
+                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim}
                     >
                         Marcos e Etapas
                     </button>
