@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../../services/api';
 import { dictionary, formatDate } from "../../utils/Dictionary";
 import { Calendar, CheckCircle, Clock } from 'lucide-react';
+import pdiService from '../../services/pdiService';
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
@@ -9,10 +10,12 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [loadingMarco, setLoadingMarco] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editablePdi, setEditablePdi] = useState(pdi || {});
+    const [editableMarcos, setEditableMarcos] = useState([]);
 
     React.useEffect(() => {
         setMarcos(pdi?.marcos || []);
         setEditablePdi(pdi || {});
+        setEditableMarcos(pdi?.marcos ? pdi.marcos.map(m => ({ ...m })) : []);
     }, [pdi]);
 
     const handleConcluirMarco = async (idMarco) => {
@@ -45,12 +48,41 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             const response = await api.put(`/pdi/${pdi.id}`, updatedPdi);
             console.log('API Response Data:', response.data);
             setEditablePdi(response.data.content);
-            alert('PDI atualizado com sucesso!');
+
+            // Lógica para salvar os marcos editados
+            const marcoUpdatePromises = editableMarcos.map(async (marco) => {
+                // Só tenta atualizar marcos que já existem (que possuem ID)
+                if (marco.id) {
+                    const updatedMarcoData = {
+                        titulo: marco.titulo,
+                        descricao: marco.descricao,
+                        dtFinal: marco.dtFinal, // Sua API espera dtFinal
+                        pdiId: pdi.id // Garante que o pdiId esteja na requisição de marco
+                    };
+                    // Retorna a promessa da atualização do marco
+                    return pdiService.updateMarco(marco.id, updatedMarcoData);
+                }
+                return Promise.resolve(null); // Retorna uma promessa resolvida para marcos sem ID (se houver, não serão atualizados aqui)
+            });
+
+            // Aguarda todas as promessas de atualização de marcos
+            const updatedMarcosResults = await Promise.all(marcoUpdatePromises);
+
+            // Atualiza o estado 'marcos' com os dados dos marcos que foram editados
+            // Isso é importante para que a UI reflita as mudanças imediatamente
+            const newMarcosState = marcos.map(originalMarco => {
+                const updated = updatedMarcosResults.find(result => result && result.id === originalMarco.id);
+                return updated ? updated : originalMarco; // Usa o marco atualizado pela API, ou o original se não foi alterado
+            });
+            setMarcos(newMarcosState); // Atualiza o estado 'marcos' principal
+            setEditableMarcos(newMarcosState.map(m => ({ ...m }))); // Sincroniza editableMarcos com os novos dados
+
+            alert('PDI e Marcos atualizados com sucesso!');
             setIsEditing(false);
             if (onUpdate) onUpdate();
         } catch (error) {
-            console.error('Erro ao atualizar PDI:', error);
-            alert('Erro ao atualizar PDI. Verifique os dados e tente novamente.');
+            console.error('Erro ao atualizar PDI ou Marcos:', error);
+            alert('Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.');
         }
     };
 
@@ -180,9 +212,49 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                             {idx + 1}
                                         </div>
                                         <div className="flex-grow">
-                                            <h4 className="font-semibold text-gray-800 text-base mb-1">{marco.titulo}</h4>
-                                            <p className="text-sm text-gray-600 mb-1">{marco.descricao}</p>
-                                            <p className="text-xs text-gray-500">Prazo: {formatDate(marco.dtFinal)}</p>
+                                            {isEditing ? (
+                                                <div className="space-y-1">
+                                                    <label className="block text-xs font-medium text-gray-500">Título:</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-1 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-base font-semibold text-gray-800"
+                                                        value={editableMarcos[idx]?.titulo || ''}
+                                                        onChange={(e) => {
+                                                            const newMarcos = [...editableMarcos];
+                                                            newMarcos[idx].titulo = e.target.value;
+                                                            setEditableMarcos(newMarcos);
+                                                        }}
+                                                    />
+                                                    <label className="block text-xs font-medium text-gray-500 mt-2">Descrição:</label>
+                                                    <textarea
+                                                        className="w-full p-1 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-gray-600"
+                                                        rows="2"
+                                                        value={editableMarcos[idx]?.descricao || ''}
+                                                        onChange={(e) => {
+                                                            const newMarcos = [...editableMarcos];
+                                                            newMarcos[idx].descricao = e.target.value;
+                                                            setEditableMarcos(newMarcos);
+                                                        }}
+                                                    ></textarea>
+                                                    <label className="block text-xs font-medium text-gray-500 mt-2">Prazo:</label>
+                                                    <input
+                                                        type="date"
+                                                        className="w-full p-1 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs text-gray-500"
+                                                        value={editableMarcos[idx]?.dtFinal ? new Date(editableMarcos[idx].dtFinal).toISOString().split('T')[0] : ''}
+                                                        onChange={(e) => {
+                                                            const newMarcos = [...editableMarcos];
+                                                            newMarcos[idx].dtFinal = e.target.value;
+                                                            setEditableMarcos(newMarcos);
+                                                        }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <h4 className="font-semibold text-gray-800 text-base mb-1">{marco.titulo}</h4>
+                                                    <p className="text-sm text-gray-600 mb-1">{marco.descricao}</p>
+                                                    <p className="text-xs text-gray-500">Prazo: {formatDate(marco.dtFinal)}</p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex justify-end items-center gap-4 mt-2 pb-4 px-6">
@@ -215,6 +287,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                             <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => {
                                 setIsEditing(false);
                                 setEditablePdi(pdi);
+                                setEditableMarcos(pdi?.marcos ? pdi.marcos.map(m => ({ ...m })) : []);
                             }}>Cancelar</button>
                         </>
                     ) : (
