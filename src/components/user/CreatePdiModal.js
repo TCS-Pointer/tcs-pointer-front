@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import pdiService from '../../services/pdiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
-import { getUsuarioByKeycloakId } from "../../services/userService";
+import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
 import Toast from '../../components/ui/Toast';
 
@@ -72,8 +72,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             const keycloakId = token ? jwtDecode(token).sub : null;
             if (keycloakId) {
                 try {
-                    const usuario = await getUsuarioByKeycloakId(keycloakId);
-                    setIdUsuario(usuario.id);
+                    const response = await userService.getUserByKeycloakId(keycloakId);
+                    setIdUsuario(response.id);
                 } catch (e) {
                     setIdUsuario(null);
                     console.error('Erro ao buscar usuário pelo keycloakId:', e);
