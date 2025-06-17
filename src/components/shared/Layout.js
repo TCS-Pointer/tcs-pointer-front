@@ -39,9 +39,8 @@ const MENU_CONFIG = {
 const NavItem = ({ to, icon, children, isActive }) => (
   <Link
     to={to}
-    className={`flex items-center space-x-2 py-2 px-4 rounded-lg transition-colors ${
-      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'
-    }`}
+    className={`flex items-center space-x-2 py-2 px-4 rounded-lg transition-colors ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'
+      }`}
   >
     {icon}
     <span>{children}</span>

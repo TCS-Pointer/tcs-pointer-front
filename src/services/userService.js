@@ -1,7 +1,7 @@
 import api from './api';
 
 export const userService = {
-  
+
   getUsers: async (page = 0, filters = {}) => {
     try {
       const response = await api.get('/api/usuarios', {
@@ -20,7 +20,7 @@ export const userService = {
 
   // Buscar um usuário específico
   getUserById: async (id) => {
-    const response = await api.get(`/api/usuarios/${id}`);
+    const response = await api.get(`/api/usuarios/id/${id}`);
     return response.data.content;
   },
   getUserByKeycloakId: async (keycloaky) => {
@@ -76,4 +76,4 @@ export const userService = {
     }
   },
 
-};  
+};
