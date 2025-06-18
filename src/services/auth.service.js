@@ -32,12 +32,21 @@ class AuthService {
 
   async login(username, password) {
     try {
+      console.log('Tentando login com:', { username, API_URL: this.api.defaults.baseURL });
+      
       const response = await this.api.post('/token', {
         username,
         password
       });
 
+      console.log('Resposta do servidor:', response.data);
+
       const { access_token, refresh_token, expires_in } = response.data.content;
+      
+      if (!access_token) {
+        console.error('Token não recebido na resposta:', response.data);
+        throw new Error('Token não recebido do servidor');
+      }
       
       this.setTokens(access_token, refresh_token, expires_in);
       
@@ -45,11 +54,13 @@ class AuthService {
       console.log('Token decodificado:', userInfo); // Debug
 
       if (!this.validateUserRoles(userInfo)) {
+        console.error('Roles inválidas para o usuário:', userInfo);
         throw new Error('Usuário não possui permissão para acessar o sistema');
       }
 
       return userInfo;
     } catch (error) {
+      console.error('Erro detalhado no login:', error);
       throw this.handleError(error);
     }
   }
@@ -147,12 +158,25 @@ class AuthService {
     const token = this.getToken();
     if (!token) return false;
     
-    if (this.isTokenExpired()) {
+    try {
+      const userInfo = this.decodeToken(token);
+      if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
+        console.error('Token inválido ou sem roles:', userInfo);
+        return false;
+      }
+
+      if (this.isTokenExpired()) {
+        console.log('Token expirado');
+        this.logout();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao validar token:', error);
       this.logout();
       return false;
     }
-
-    return true;
   }
 
   handleError(error) {

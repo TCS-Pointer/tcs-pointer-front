@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthNavigation } from '../../hooks/useAuthNavigation';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import pointerIcon from '../../components/ico/image.png';
 import CenteredToast from '../ui/CenteredToast';
 
@@ -15,11 +16,42 @@ const loginSchema = z.object({
 const Login = () => {
   const { login } = useAuthNavigation();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [toast, setToast] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (!loading && user) {
+      const role = user.role;
+      switch (role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'gestor':
+          navigate('/gestor');
+          break;
+        case 'colaborador':
+          navigate('/');
+          break;
+        default:
+          navigate('/');
+      }
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   const onSubmit = async (data) => {
     try {

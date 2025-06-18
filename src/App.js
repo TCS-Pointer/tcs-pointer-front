@@ -10,20 +10,25 @@ import GestorDashboard from './pages/gestor/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Layout from './components/shared/Layout';
 import Perfil from './pages/Perfil';
+import Unauthorized from './components/Unauthorized';
 import MeuPDIsOverview from './pages/user/MeuPDIsOverview';
 import AllPDIs from './components/user/AllPDIs';
 import './styles/globals.css';
 
 // Componente para proteger rotas
 const ProtectedRoute = ({ children, role }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (role && !user.roles.includes(role)) {
-    return <Navigate to="/" replace />;
+  if (role && user.role !== role) {
+    return <Unauthorized />;
   }
 
   return children;
@@ -39,34 +44,28 @@ function App() {
           <Route path="/auth/esqueceu-senha" element={<EsqueceuSenha />} />
           <Route path="/auth/verificar-codigo" element={<VerificarCodigo />} />
           <Route path="/auth/redefinir-senha" element={<RedefinirSenha />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Rotas protegidas dentro do Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             {/* Rotas de Usuário */}
-            <Route path="/" element={<UserDashboard />} />
-            {/* <Route path="/meu-pdi" element={<MeuPDIsOverview />} /> */}
-            <Route path="/all-pdi" element={<AllPDIs />} />
+            <Route index element={<UserDashboard />} />
+            <Route path="feedbacks" element={<UserDashboard />} />
+            <Route path="comunicados" element={<UserDashboard />} />
+            <Route path="meu-pdi" element={<UserDashboard />} />
+            <Route path="perfil" element={<Perfil />} />
+            <Route path="pdi" element={<AllPDIs />} />
 
             {/* Rotas de Admin */}
-            <Route path="/admin" element={
-              <ProtectedRoute role="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute role="admin">
-                <UserManagement />
-              </ProtectedRoute>
-            } />
+            <Route path="admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin/users" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
+            <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
 
             {/* Rotas de Gestor */}
-            <Route path="/gestor" element={
-              <ProtectedRoute role="gestor">
-                <GestorDashboard />
-              </ProtectedRoute>
-            } />
-            {/* Perfil do usuário */}
-            <Route path="/perfil" element={<Perfil />} />
+            <Route path="gestor" element={<ProtectedRoute role="gestor"><GestorDashboard /></ProtectedRoute>} />
+
+            {/* Rota para páginas não encontradas dentro do layout */}
+            <Route path="*" element={<Unauthorized />} />
           </Route>
 
           {/* Rota padrão - redireciona para login */}
