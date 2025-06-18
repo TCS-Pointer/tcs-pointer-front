@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import pointerIcon from '../../components/ico/image.png';
 
@@ -14,22 +14,22 @@ const ICONS = {
 
 const MENU_CONFIG = {
   admin: [
-    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
     { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
-    { to: "/admin/usuarios", label: "Usuários", icon: ICONS.users },
+    { to: "/pdi", label: "Todos os PDIs", icon: ICONS.pdi },
+    { to: "/admin/users", label: "Usuários", icon: ICONS.users },
     { to: "/admin/relatorios", label: "Relatórios", icon: ICONS.relatorios },
   ],
   gestor: [
-    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
     { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
-    // Adicione menus exclusivos de gestor se houver
   ],
   colaborador: [
-    { to: "/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
     { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
@@ -49,9 +49,24 @@ const NavItem = ({ to, icon, children, isActive }) => (
 
 const Layout = () => {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
-  const role = user?.role || 'colaborador';
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const role = user.role || 'colaborador';
   const menuItems = MENU_CONFIG[role] || MENU_CONFIG['colaborador'];
 
   return (
@@ -66,14 +81,14 @@ const Layout = () => {
         </div>
         <nav className="mt-4 px-2 space-y-1">
           {menuItems.map(item => (
-              <NavItem
+            <NavItem
               key={item.to}
               to={item.to}
               isActive={location.pathname === item.to}
               icon={item.icon}
-              >
+            >
               {item.label}
-              </NavItem>
+            </NavItem>
           ))}
         </nav>
         <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200">

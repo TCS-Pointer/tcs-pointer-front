@@ -8,13 +8,13 @@ export const useAuthNavigation = () => {
   const redirectBasedOnRole = (role) => {
     switch (role) {
       case 'admin':
-        navigate('/admin/dashboard');
+        navigate('/admin');
         break;
       case 'gestor':
-        navigate('/gestor/dashboard');
+        navigate('/gestor');
         break;
       case 'colaborador':
-        navigate('/colaborador/dashboard');
+        navigate('/');
         break;
       default:
         navigate('/login');

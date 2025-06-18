@@ -8,32 +8,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const userInfo = authService.decodeToken(authService.getToken());
-          const userRole = authService.getUserRole();
-          
-          console.log('Inicializando autenticação:', { userInfo, userRole }); // Debug
-          
-          if (userInfo && userRole) {
-            setUser({ ...userInfo, role: userRole });
-          } else {
-            console.error('Falha ao inicializar autenticação:', { userInfo, userRole });
-            authService.logout();
-            setUser(null);
-          }
+  const initializeAuth = () => {
+    try {
+      if (authService.isAuthenticated()) {
+        const userInfo = authService.decodeToken(authService.getToken());
+        const userRole = authService.getUserRole();
+        
+        console.log('Inicializando autenticação:', { userInfo, userRole }); // Debug
+        
+        if (userInfo && userRole) {
+          setUser({ ...userInfo, role: userRole });
+        } else {
+          console.error('Falha ao inicializar autenticação:', { userInfo, userRole });
+          authService.logout();
+          setUser(null);
         }
-      } catch (err) {
-        console.error('Erro ao inicializar autenticação:', err);
-        authService.logout();
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Erro ao inicializar autenticação:', err);
+      authService.logout();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     initializeAuth();
   }, []);
 
@@ -69,8 +69,13 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated: authService.isAuthenticated(),
-    getUserRole: authService.getUserRole
+    getUserRole: authService.getUserRole,
+    initializeAuth
   };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
