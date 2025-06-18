@@ -8,7 +8,9 @@ export const userService = {
         params: {
           page,
           size: 10,
-          ...filters
+          ...(filters.status && { status: filters.status }),
+          ...(filters.setor && { setor: filters.setor }),
+          ...(filters.tipoUsuario && { tipoUsuario: filters.tipoUsuario })
         }
       });
       return response.data.content;

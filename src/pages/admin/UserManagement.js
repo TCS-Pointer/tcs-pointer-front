@@ -5,10 +5,10 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Users, UserPlus, Ban, CheckCircle2, Pencil } from "lucide-react";
 import UserCreateModal from '../../components/admin/UserCreateModal';
 import UserEditModal from '../../components/admin/UserEditModal';
+import UserFilters from '../../components/admin/UserFilters';
 import CenteredToast from '../../components/ui/CenteredToast';
 import { useAuth } from '../../contexts/AuthContext';
 import UserStatsCards from '../../components/admin/UserStatsCards';
@@ -25,28 +25,6 @@ const UserCard = ({ title, value, icon }) => (
   </Card>
 );
 
-const SETORES = [
-  { value: "TI", label: "TI" },
-  { value: "RH", label: "RH" },
-  { value: "FINANCEIRO", label: "Financeiro" },
-  { value: "COMERCIAL", label: "Comercial" },
-  { value: "OPERACIONAL", label: "Operacional" }
-];
-
-const CARGOS = [
-  { value: "DESENVOLVEDOR", label: "Desenvolvedor" },
-  { value: "ANALISTA", label: "Analista" },
-  { value: "GERENTE", label: "Gerente" },
-  { value: "COORDENADOR", label: "Coordenador" },
-  { value: "DIRETOR", label: "Diretor" }
-];
-
-const STATUS = [
-  { value: '', label: 'Todos' },
-  { value: 'ATIVO', label: 'Ativo' },
-  { value: 'INATIVO', label: 'Inativo' }
-];
-
 const UserManagement = () => {
   const navigate = useNavigate();
   const { user: loggedUser } = useAuth();
@@ -60,8 +38,6 @@ const UserManagement = () => {
     setor: '',
     status: ''
   });
-  const [setores, setSetores] = useState([]);
-  const [tiposUsuario, setTiposUsuario] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -78,16 +54,18 @@ const UserManagement = () => {
     setToastOpen(true);
   };
 
-  // Função para carregar usuários (reutilizável)
+  // Função para carregar usuários
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await userService.getUsers(page, 10, filters);
+      console.log('Carregando usuários com filtros:', filters);
+      const data = await userService.getUsers(page, filters);
+      console.log('Resposta da API:', data);
       setUsers(data?.content || []);
       setTotalUsers(data?.totalElements || 0);
     } catch (err) {
+      console.error('Erro detalhado ao carregar usuários:', err);
       setError('Erro ao carregar usuários');
-      console.error(err);
       setUsers([]);
       setTotalUsers(0);
     } finally {
@@ -95,27 +73,9 @@ const UserManagement = () => {
     }
   };
 
-  // Função para carregar as opções dos filtros
-  const loadFilterOptions = async () => {
-    try {
-      const [setoresResponse, tiposResponse] = await Promise.all([
-        userService.getSetores(),
-        userService.getTiposUsuario()
-      ]);
-      
-      setSetores(setoresResponse || []);
-      setTiposUsuario(Array.isArray(tiposResponse) ? tiposResponse : []);
-    } catch (err) {
-      console.error('Erro ao carregar opções dos filtros:', err);
-      showToast('Erro ao carregar opções dos filtros', 'error');
-    }
-  };
-
   // Carregar usuários
   useEffect(() => {
     loadUsers();
-    loadFilterOptions();
-    // eslint-disable-next-line
   }, [page, filters]);
 
   const [statsRefreshKey, setStatsRefreshKey] = useState(0);
@@ -123,7 +83,7 @@ const UserManagement = () => {
   const handleStatusChange = async (email) => {
     try {
       await userService.updateUserStatus(email, loggedUser.email);
-      const data = await userService.getUsers(page, 10, filters);
+      const data = await userService.getUsers(page, filters);
       setUsers(data?.content || []);
       setTotalUsers(data?.totalElements || 0);
       showToast('Status do usuário atualizado com sucesso!', 'success');
@@ -148,7 +108,7 @@ const UserManagement = () => {
     setEditUser(null);
   };
 
-  // Funções de salvar (placeholders)
+  // Funções de salvar
   const handleCreateUserSave = (form) => {
     showToast('Usuário criado!');
     handleCloseModal();
@@ -161,9 +121,11 @@ const UserManagement = () => {
     loadUsers();
     setStatsRefreshKey(prev => prev + 1);
   };
-  const handleResetPassword = (form) => {
-    // Aqui você chama a API para resetar senha
-    showToast('Senha resetada!');
+
+  const handleFilterChange = (newFilters) => {
+    console.log('UserManagement recebeu novos filtros:', newFilters);
+    setFilters(newFilters);
+    setPage(0); // Reset page when filters change
   };
 
   return (
@@ -180,60 +142,7 @@ const UserManagement = () => {
       {/* Cards */}
       <UserStatsCards refreshKey={statsRefreshKey} />
       {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select
-              value={filters.tipoUsuario}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, tipoUsuario: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Tipo de Usuário" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                {Array.isArray(tiposUsuario) && tiposUsuario.map(tipo => (
-                  <SelectItem key={tipo.tipoUsuario} value={tipo.tipoUsuario}>
-                    {tipo.tipoUsuario === 'ADMIN' ? 'Administrador' : 
-                     tipo.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.setor}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, setor: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Setor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                {setores.map(setor => (
-                  <SelectItem key={setor} value={setor}>
-                    {setor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.status}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS.map(status => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <UserFilters onFilterChange={handleFilterChange} />
       {/* Tabela de Usuários */}
       <Card>
         <CardHeader>
@@ -291,10 +200,7 @@ const UserManagement = () => {
                     <TableCell>{user.cargo}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={user.tipoUsuario === 'ADMIN' ? 'bg-black text-white' : user.tipoUsuario === 'GESTOR' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}>
-
                         {user.tipoUsuario === 'ADMIN' ? 'Administrador' : user.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
-              
-
                       </Badge>
                     </TableCell>
                     <TableCell>
