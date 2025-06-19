@@ -15,8 +15,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         colaboradorId: undefined,
         titulo: '',
         descricao: '',
-        dataInicio: '',
-        dataFim: '',
+        dtInicio: '',
+        dtFim: '',
         marcos: [],
     });
     const [currentMarco, setCurrentMarco] = useState({
@@ -108,7 +108,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const handleNextStep = () => {
-        if (!formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim) {
+        if (!formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dtInicio || !formData.dtFim) {
             setToast({ message: 'Por favor, preencha todos os campos das informações básicas.', type: 'error' });
             return;
         }
@@ -148,8 +148,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             const pdiData = {
                 titulo: formData.titulo,
                 descricao: formData.descricao,
-                dataInicio: formData.dataInicio,
-                dataFim: formData.dataFim,
+                dtInicio: formData.dtInicio,
+                dtFim: formData.dtFim,
                 idUsuario,
                 idDestinatario: Number(formData.colaboradorId),
                 status: 'EM_ANDAMENTO',
@@ -181,8 +181,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             colaboradorId: undefined,
             titulo: '',
             descricao: '',
-            dataInicio: '',
-            dataFim: '',
+            dtInicio: '',
+            dtFim: '',
             marcos: [],
         });
         setCurrentMarco({ titulo: '', descricao: '', dtFinal: '' });
@@ -223,7 +223,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                     <button
                         className={`flex-1 text-center py-2 px-4 ${step === 'milestones' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
                         onClick={() => setStep('milestones')}
-                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim}
+                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dtInicio || !formData.dtFim}
                     >
                         Marcos e Etapas
                     </button>
@@ -280,23 +280,23 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
-                                <label htmlFor="dataInicio" className="block text-sm font-medium text-gray-700">Data de Início</label>
+                                <label htmlFor="dtInicio" className="block text-sm font-medium text-gray-700">Data de Início</label>
                                 <input
                                     type="date"
-                                    name="dataInicio"
-                                    id="dataInicio"
-                                    value={formData.dataInicio}
+                                    name="dtInicio"
+                                    id="dtInicio"
+                                    value={formData.dtInicio}
                                     onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="dataFim" className="block text-sm font-medium text-gray-700">Data de Término</label>
+                                <label htmlFor="dtFim" className="block text-sm font-medium text-gray-700">Data de Término</label>
                                 <input
                                     type="date"
-                                    name="dataFim"
-                                    id="dataFim"
-                                    value={formData.dataFim}
+                                    name="dtFim"
+                                    id="dtFim"
+                                    value={formData.dtFim}
                                     onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 />
