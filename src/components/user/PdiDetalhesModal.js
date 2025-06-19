@@ -50,8 +50,8 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             const updatedPdi = {
                 titulo: editablePdi.titulo,
                 descricao: editablePdi.descricao,
-                dataInicio: editablePdi.dataInicio,
-                dataFim: editablePdi.dataFim,
+                dtInicio: editablePdi.dtInicio,
+                dtFim: editablePdi.dtFim,
                 iDdestinatario: editablePdi.iDdestinatario || pdi.iDdestinatario,
             };
 
@@ -184,21 +184,21 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                         <input
                                             type="date"
                                             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            value={editablePdi.dataInicio ? new Date(editablePdi.dataInicio).toISOString().split('T')[0] : ''}
-                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataInicio: e.target.value })}
+                                            value={editablePdi.dtInicio ? new Date(editablePdi.dtInicio).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dtInicio: e.target.value })}
                                         />
                                         <label className="block text-xs font-medium text-gray-500 mt-2">Término:</label>
                                         <input
                                             type="date"
                                             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            value={editablePdi.dataFim ? new Date(editablePdi.dataFim).toISOString().split('T')[0] : ''}
-                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataFim: e.target.value })}
+                                            value={editablePdi.dtFim ? new Date(editablePdi.dtFim).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dtFim: e.target.value })}
                                         />
                                     </>
                                 ) : (
                                     <>
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dataInicio)}</span><br />
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dataFim)}</span>
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dtInicio)}</span><br />
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dtFim)}</span>
                                     </>
                                 )}
                             </div>

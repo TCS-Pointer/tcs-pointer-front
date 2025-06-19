@@ -275,11 +275,11 @@ const AllPDIs = () => {
                                 <div className="flex justify-between text-sm text-gray-600 mb-4">
                                     <div>
                                         <span className="block text-gray-500 text-xs mb-1">Início</span>
-                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dataInicio)}</span>
+                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dtInicio)}</span>
                                     </div>
                                     <div>
                                         <span className="block text-gray-500 text-xs mb-1">Término</span>
-                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dataFim)}</span>
+                                        <span className="text-lg font-semibold text-gray-900">{formatDate(pdi.dtFim)}</span>
                                     </div>
                                 </div>
                                 <div className="mb-4">
