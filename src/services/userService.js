@@ -79,3 +79,8 @@ export const userService = {
   },
 
 };
+export async function getUsuarioByKeycloakId(keycloakId) {
+  const response = await api.get(`/api/usuarios/${keycloakId}`);
+  console.log('Resposta da API do ID do usuário:', response.data);
+  return response.data.content; // ajuste conforme a resposta da sua API
+}  
