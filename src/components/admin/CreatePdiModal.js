@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import pdiService from '../../services/pdiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
-import Toast from '../../components/ui/Toast';
+import Toast from '../ui/Toast';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -36,13 +36,14 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const [idUsuario, setIdUsuario] = useState(null);
 
     useEffect(() => {
-        if (isOpen && user?.id) {
-            console.log('Modal is open, fetching users for user:', user.id);
+        console.log('DEBUG isOpen:', isOpen, 'user:', user);
+        if (isOpen && user?.sub) {
+            console.log('Modal is open, fetching users for user:', user.sub);
             const fetchUsers = async () => {
                 setUsersLoading(true);
                 setUsersError(null);
                 try {
-                    const users = await pdiService.getUsersByDepartment(user.id);
+                    const users = await pdiService.getUsersByDepartment(user.sub);
                     console.log('Users fetched for user:', users);
                     setAllUsers(users);
                 } catch (err) {
@@ -54,7 +55,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             };
             fetchUsers();
         }
-    }, [isOpen, user?.id]);
+    }, [isOpen, user?.sub]);
     useEffect(() => {
         console.log('allUsers state updated:', allUsers);
         if (allUsers.length > 0) {

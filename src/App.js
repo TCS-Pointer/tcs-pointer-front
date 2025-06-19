@@ -11,8 +11,7 @@ import UserManagement from './pages/admin/UserManagement';
 import Layout from './components/shared/Layout';
 import Perfil from './pages/Perfil';
 import Unauthorized from './components/Unauthorized';
-import MeuPDIsOverview from './pages/user/MeuPDIsOverview';
-import AllPDIs from './components/user/AllPDIs';
+import AllPDIs from './pages/admin/AllPDIs';
 import './styles/globals.css';
 
 // Componente para proteger rotas

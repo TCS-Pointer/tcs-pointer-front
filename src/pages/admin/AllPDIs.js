@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import pdiService from '../../services/pdiService';
-import { userService } from '../../services/userService';
-import CreatePdiModal from './CreatePdiModal';
+import CreatePdiModal from '../../components/admin/CreatePdiModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { dictionary, formatDate } from '../../utils/Dictionary';
 import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react';
-import PdiDetalhesModal from './PdiDetalhesModal';
+import PdiDetalhesModal from '../../components/admin/PdiDetalhesModal';
 
 const AllPDIs = () => {
     const { user } = useAuth();
