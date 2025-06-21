@@ -179,7 +179,7 @@ const AllPDIs = () => {
                             id="departamento"
                             value={selectedDepartment}
                             onChange={(e) => setSelectedDepartment(e.target.value)}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         >
                             <option value="todos">Todos os departamentos</option>
                             {departments.map((dept) => (
