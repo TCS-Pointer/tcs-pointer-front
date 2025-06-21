@@ -16,6 +16,11 @@ const passwordService = {
   resetPassword: async (email, senha) => {
     const response = await axios.post(`${API_URL}/redefinir-senha`, { email, senha });
     return response.data;
+  },
+
+  primeiroAcesso: async (token, novaSenha) => {
+    const response = await axios.post(`${API_URL}/primeiro-acesso`, { token, novaSenha });
+    return response.data;
   }
 };
 
