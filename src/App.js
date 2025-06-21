@@ -4,6 +4,7 @@ import Login from './components/auth/Login';
 import EsqueceuSenha from './components/auth/EsqueceuSenha';
 import VerificarCodigo from './components/auth/VerificarCodigo';
 import RedefinirSenha from './components/auth/RedefinirSenha';
+import PrimeiroAcesso from './components/auth/PrimeiroAcesso';
 import UserDashboard from './pages/user/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import GestorDashboard from './pages/gestor/Dashboard';
@@ -44,6 +45,7 @@ function App() {
           <Route path="/auth/esqueceu-senha" element={<EsqueceuSenha />} />
           <Route path="/auth/verificar-codigo" element={<VerificarCodigo />} />
           <Route path="/auth/redefinir-senha" element={<RedefinirSenha />} />
+          <Route path="/primeiro-acesso" element={<PrimeiroAcesso />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Rotas protegidas dentro do Layout */}
