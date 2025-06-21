@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import pdiService from '../../services/pdiService';
@@ -103,33 +101,28 @@ const AllPDIs = () => {
             </div>
             <p className="text-gray-600">Visualize e gerencie todos os Planos de Desenvolvimento Individual</p>
             <div className="flex gap-4">
-                {/* PDIs Ativos */}
                 <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
                     <div className="flex justify-between items-center">
                         <div>
                             <div className="text-gray-500 text-sm">PDIs Ativos</div>
                             <div className="text-3xl font-bold">{pdis.filter(p => p.status === 'ATIVO' || p.status === 'EM_ANDAMENTO').length}</div>
-                            {/* <div className="text-xs text-gray-400 mt-1">+Novos este trimestre (Implementar cálculo)</div> */}
                         </div>
                         <div className="bg-blue-100 rounded-full p-2">
                             <Calendar className="text-blue-400" />
                         </div>
                     </div>
                 </div>
-                {/* PDIs Concluídos */}
                 <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
                     <div className="flex justify-between items-center">
                         <div>
                             <div className="text-gray-500 text-sm">PDIs Concluídos</div>
                             <div className="text-3xl font-bold">{pdis.filter(p => p.status === 'CONCLUIDO').length}</div>
-                            {/* <div className="text-xs text-gray-400 mt-1">+Novos no último mês (Implementar cálculo)</div> */}
                         </div>
                         <div className="bg-green-100 rounded-full p-2">
                             <FileText className="text-green-400" />
                         </div>
                     </div>
                 </div>
-                {/* Taxa de Conclusão */}
                 <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
                     <div className="flex justify-between items-center">
                         <div>
@@ -155,13 +148,11 @@ const AllPDIs = () => {
                         </div>
                     </div>
                 </div>
-                {/* Colaboradores com PDI */}
                 <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
                     <div className="flex justify-between items-center">
                         <div>
                             <div className="text-gray-500 text-sm">Colaboradores com PDI</div>
                             <div className="text-3xl font-bold">{new Set(pdis.map(p => p.idDestinatario)).size}</div>
-                            {/* <div className="text-xs text-gray-400 mt-1">% do total de colaboradores (Implementar cálculo)</div> */}
                         </div>
                         <div className="bg-purple-100 rounded-full p-2">
                             <Users className="text-purple-400" />
