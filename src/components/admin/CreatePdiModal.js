@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
 import Toast from '../ui/Toast';
+import { validarPdiCompleto } from '../../services/pdiValidationService';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -138,11 +139,15 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const handleSavePdi = async () => {
+        const erros = validarPdiCompleto(formData);
+        if (erros.length > 0) {
+            setToast({ message: erros.join('\n'), type: 'error' });
+            return;
+        }
         if (!formData.marcos || formData.marcos.length === 0) {
             setToast({ message: 'Por favor, adicione pelo menos um marco.', type: 'error' });
             return;
         }
-
         setLoading(true);
         setError(null);
         try {
@@ -203,7 +208,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
             {toast && (
                 <Toast
-                    message={toast.message}
+                    message={toast.message.split('\n').map((msg, idx) => <div key={idx}>{msg}</div>)}
                     type={toast.type}
                     onClose={() => setToast(null)}
                 />
