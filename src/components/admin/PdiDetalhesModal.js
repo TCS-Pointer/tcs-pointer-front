@@ -4,6 +4,7 @@ import { dictionary, formatDate } from "../../utils/Dictionary";
 import { Calendar, CheckCircle, Clock } from 'lucide-react';
 import pdiService from '../../services/pdiService';
 import Toast from '../ui/Toast';
+import { validarDuracaoMinima } from '../../services/pdiValidationService';
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
@@ -17,6 +18,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     });
     const [editableMarcos, setEditableMarcos] = useState([]);
     const [toast, setToast] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
 
     React.useEffect(() => {
         setMarcos(pdi?.marcos || []);
@@ -45,13 +47,57 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
         }
     };
 
+    const validateFields = () => {
+        const erros = {};
+        if (!editablePdi.titulo || editablePdi.titulo.trim().length < 5) {
+            erros.titulo = 'Título deve ter pelo menos 5 caracteres.';
+        }
+        if (!editablePdi.descricao || editablePdi.descricao.trim().length < 10) {
+            erros.descricao = 'Descrição deve ter pelo menos 10 caracteres.';
+        }
+        if (!editablePdi.dtInicio) {
+            erros.dtInicio = 'Data de início é obrigatória.';
+        }
+        if (!editablePdi.dtFim) {
+            erros.dtFim = 'Data de término é obrigatória.';
+        }
+        if (editablePdi.dtInicio && editablePdi.dtFim && !validarDuracaoMinima(editablePdi.dtInicio, editablePdi.dtFim)) {
+            erros.dtFim = 'O PDI deve ter pelo menos 1 mês de duração.';
+        }
+        editableMarcos.forEach((marco, idx) => {
+            if (!marco.titulo || marco.titulo.trim().length < 3) {
+                erros[`marco_titulo_${idx}`] = 'Título do marco deve ter pelo menos 3 caracteres.';
+            }
+            if (!marco.descricao || marco.descricao.trim().length < 5) {
+                erros[`marco_descricao_${idx}`] = 'Descrição do marco deve ter pelo menos 5 caracteres.';
+            }
+            if (!marco.dtFinal) {
+                erros[`marco_dtFinal_${idx}`] = 'Data final do marco é obrigatória.';
+            }
+            if (marco.dtFinal && editablePdi.dtInicio && editablePdi.dtFim) {
+                const dataMarco = new Date(marco.dtFinal);
+                const inicio = new Date(editablePdi.dtInicio);
+                const fim = new Date(editablePdi.dtFim);
+                if (dataMarco < inicio || dataMarco > fim) {
+                    erros[`marco_dtFinal_${idx}`] = 'Data do marco deve estar dentro do período do PDI.';
+                }
+            }
+        });
+        setFieldErrors(erros);
+        return Object.keys(erros).length === 0;
+    };
+
     const handleSave = async () => {
+        if (!validateFields()) {
+            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
+            return;
+        }
         try {
             const updatedPdi = {
                 titulo: editablePdi.titulo,
                 descricao: editablePdi.descricao,
-                dataInicio: editablePdi.dataInicio,
-                dataFim: editablePdi.dataFim,
+                dtInicio: editablePdi.dtInicio,
+                dtFim: editablePdi.dtFim,
                 iDdestinatario: editablePdi.iDdestinatario || pdi.iDdestinatario,
             };
 
@@ -130,12 +176,15 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                     </span>
                 </div>
                 {isEditing ? (
-                    <input
-                        type="text"
-                        className="w-full text-2xl font-bold mb-2 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={editablePdi.titulo || ''}
-                        onChange={(e) => setEditablePdi({ ...editablePdi, titulo: e.target.value })}
-                    />
+                    <>
+                        <input
+                            type="text"
+                            className="w-full text-2xl font-bold mb-2 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={editablePdi.titulo || ''}
+                            onChange={(e) => setEditablePdi({ ...editablePdi, titulo: e.target.value })}
+                        />
+                        {fieldErrors.titulo && <div className="text-red-500 text-xs mt-1">{fieldErrors.titulo}</div>}
+                    </>
                 ) : (
                     <h3 className="text-2xl font-bold mb-2">{editablePdi.titulo}</h3>
                 )}
@@ -171,6 +220,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                     value={editablePdi.descricao || ''}
                                     onChange={(e) => setEditablePdi({ ...editablePdi, descricao: e.target.value })}
                                 ></textarea>
+                                {fieldErrors.descricao && <div className="text-red-500 text-xs mt-1">{fieldErrors.descricao}</div>}
                             </div>
                         ) : (
                             <p className="mb-4 text-gray-700"><b>Descrição e Objetivos</b><br />{editablePdi.descricao}</p>
@@ -184,22 +234,25 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                         <input
                                             type="date"
                                             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            value={editablePdi.dataInicio ? new Date(editablePdi.dataInicio).toISOString().split('T')[0] : ''}
-                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataInicio: e.target.value })}
+                                            value={editablePdi.dtInicio ? new Date(editablePdi.dtInicio).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dtInicio: e.target.value })}
                                         />
+                                        {fieldErrors.dtInicio && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtInicio}</div>}
                                         <label className="block text-xs font-medium text-gray-500 mt-2">Término:</label>
                                         <input
                                             type="date"
                                             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            value={editablePdi.dataFim ? new Date(editablePdi.dataFim).toISOString().split('T')[0] : ''}
-                                            onChange={(e) => setEditablePdi({ ...editablePdi, dataFim: e.target.value })}
+                                            value={editablePdi.dtFim ? new Date(editablePdi.dtFim).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => setEditablePdi({ ...editablePdi, dtFim: e.target.value })}
                                         />
+                                        {fieldErrors.dtFim && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtFim}</div>}
                                     </>
                                 ) : (
-                                    <>
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dataInicio)}</span><br />
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dataFim)}</span>
-                                    </>
+                                    <div className="flex items-center gap-4">
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dtInicio)}</span>
+                                        <span className="text-gray-400">—</span>
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dtFim)}</span>
+                                    </div>
                                 )}
                             </div>
                             <div>
@@ -240,6 +293,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                                             setEditableMarcos(newMarcos);
                                                         }}
                                                     />
+                                                    {fieldErrors[`marco_titulo_${idx}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_titulo_${idx}`]}</div>}
                                                     <label className="block text-xs font-medium text-gray-500 mt-2">Descrição:</label>
                                                     <textarea
                                                         className="w-full p-1 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-gray-600"
@@ -251,6 +305,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                                             setEditableMarcos(newMarcos);
                                                         }}
                                                     ></textarea>
+                                                    {fieldErrors[`marco_descricao_${idx}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_descricao_${idx}`]}</div>}
                                                     <label className="block text-xs font-medium text-gray-500 mt-2">Prazo:</label>
                                                     <input
                                                         type="date"
@@ -262,6 +317,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                                             setEditableMarcos(newMarcos);
                                                         }}
                                                     />
+                                                    {fieldErrors[`marco_dtFinal_${idx}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_dtFinal_${idx}`]}</div>}
                                                 </div>
                                             ) : (
                                                 <>
@@ -284,7 +340,17 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                                     disabled={loadingMarco === marco.id}
                                                     onChange={() => handleConcluirMarco(marco.id)}
                                                 />
-                                                <span className="text-sm text-gray-700">Marcar como concluído</span>
+                                                {loadingMarco === marco.id ? (
+                                                    <span className="flex items-center gap-1 text-blue-600">
+                                                        <svg className="animate-spin h-4 w-4 mr-1 text-blue-600" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                                        </svg>
+                                                        Processando...
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-gray-700">Marcar como concluído</span>
+                                                )}
                                             </label>
                                         )}
                                     </div>

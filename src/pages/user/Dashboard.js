@@ -1,8 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import StatCard from '../../components/user/StatCard';
-import FeedbackItem from '../../components/user/FeedbackItem';
-import PDIProgress from '../../components/user/PDIProgress';
 
 const UserDashboard = () => {
   const { user } = useAuth();

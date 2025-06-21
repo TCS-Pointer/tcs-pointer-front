@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Button } from '../ui/button';
 import pdiService from '../../services/pdiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
-import Toast from '../../components/ui/Toast';
+import Toast from '../ui/Toast';
+import { validarPdiCompleto, validarDuracaoMinima } from '../../services/pdiValidationService';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -15,8 +15,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         colaboradorId: undefined,
         titulo: '',
         descricao: '',
-        dataInicio: '',
-        dataFim: '',
+        dtInicio: '',
+        dtFim: '',
         marcos: [],
     });
     const [currentMarco, setCurrentMarco] = useState({
@@ -32,17 +32,19 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const [usersLoading, setUsersLoading] = useState(false);
     const [usersError, setUsersError] = useState(null);
     const [toast, setToast] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const [idUsuario, setIdUsuario] = useState(null);
 
     useEffect(() => {
-        if (isOpen && user?.id) {
-            console.log('Modal is open, fetching users for user:', user.id);
+        console.log('DEBUG isOpen:', isOpen, 'user:', user);
+        if (isOpen && user?.sub) {
+            console.log('Modal is open, fetching users for user:', user.sub);
             const fetchUsers = async () => {
                 setUsersLoading(true);
                 setUsersError(null);
                 try {
-                    const users = await pdiService.getUsersByDepartment(user.id);
+                    const users = await pdiService.getUsersByDepartment(user.sub);
                     console.log('Users fetched for user:', users);
                     setAllUsers(users);
                 } catch (err) {
@@ -54,7 +56,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             };
             fetchUsers();
         }
-    }, [isOpen, user?.id]);
+    }, [isOpen, user?.sub]);
     useEffect(() => {
         console.log('allUsers state updated:', allUsers);
         if (allUsers.length > 0) {
@@ -89,6 +91,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             ...prevData,
             [name]: value
         }));
+        setFieldErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
     const handleMarcoChange = (e) => {
@@ -96,6 +99,10 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         setCurrentMarco(prevData => ({
             ...prevData,
             [name]: value
+        }));
+        setFieldErrors(prev => ({
+            ...prev,
+            [`currentMarco${name.charAt(0).toUpperCase() + name.slice(1)}`]: undefined
         }));
         setMarcoError(null);
     };
@@ -108,8 +115,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const handleNextStep = () => {
-        if (!formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim) {
-            setToast({ message: 'Por favor, preencha todos os campos das informações básicas.', type: 'error' });
+        if (!validateFields()) {
+            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
             return;
         }
         setToast(null);
@@ -117,8 +124,27 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const handleAddMarco = () => {
-        if (!currentMarco.titulo || !currentMarco.descricao || !currentMarco.dtFinal) {
-            setToast({ message: 'Por favor, preencha todos os campos do marco.', type: 'error' });
+        const erros = {};
+        if (!currentMarco.titulo || currentMarco.titulo.trim().length < 3) {
+            erros.currentMarcoTitulo = 'Título do marco deve ter pelo menos 3 caracteres.';
+        }
+        if (!currentMarco.descricao || currentMarco.descricao.trim().length < 5) {
+            erros.currentMarcoDescricao = 'Descrição do marco deve ter pelo menos 5 caracteres.';
+        }
+        if (!currentMarco.dtFinal) {
+            erros.currentMarcoDtFinal = 'Data final do marco é obrigatória.';
+        }
+        if (currentMarco.dtFinal && formData.dtInicio && formData.dtFim) {
+            const dataMarco = new Date(currentMarco.dtFinal);
+            const inicio = new Date(formData.dtInicio);
+            const fim = new Date(formData.dtFim);
+            if (dataMarco < inicio || dataMarco > fim) {
+                erros.currentMarcoDtFinal = 'Data do marco deve estar dentro do período do PDI.';
+            }
+        }
+        setFieldErrors(prev => ({ ...prev, ...erros }));
+        if (Object.keys(erros).length > 0) {
+            setToast({ message: 'Verifique os campos destacados do marco e tente novamente.', type: 'error' });
             return;
         }
         setToast(null);
@@ -134,22 +160,105 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             ...prevData,
             marcos: prevData.marcos.filter((_, i) => i !== index)
         }));
+        setFieldErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`marco_titulo_${index}`];
+            delete newErrors[`marco_descricao_${index}`];
+            delete newErrors[`marco_dtFinal_${index}`];
+            return newErrors;
+        });
+    };
+
+    const validateFields = () => {
+        const erros = {};
+        if (!formData.colaboradorId) {
+            erros.colaboradorId = 'Colaborador é obrigatório.';
+        }
+        if (!formData.titulo || formData.titulo.trim().length < 5) {
+            erros.titulo = 'Título deve ter pelo menos 5 caracteres.';
+        }
+        if (!formData.descricao || formData.descricao.trim().length < 10) {
+            erros.descricao = 'Descrição deve ter pelo menos 10 caracteres.';
+        }
+        if (!formData.dtInicio) {
+            erros.dtInicio = 'Data de início é obrigatória.';
+        }
+        if (!formData.dtFim) {
+            erros.dtFim = 'Data de término é obrigatória.';
+        }
+        if (formData.dtInicio && formData.dtFim && !validarDuracaoMinima(formData.dtInicio, formData.dtFim)) {
+            erros.dtFim = 'O PDI deve ter pelo menos 1 mês de duração.';
+        }
+        formData.marcos.forEach((marco, idx) => {
+            if (!marco.titulo || marco.titulo.trim().length < 3) {
+                erros[`marco_titulo_${idx}`] = 'Título do marco deve ter pelo menos 3 caracteres.';
+            }
+            if (!marco.descricao || marco.descricao.trim().length < 5) {
+                erros[`marco_descricao_${idx}`] = 'Descrição do marco deve ter pelo menos 5 caracteres.';
+            }
+            if (!marco.dtFinal) {
+                erros[`marco_dtFinal_${idx}`] = 'Data final do marco é obrigatória.';
+            }
+            if (marco.dtFinal && formData.dtInicio && formData.dtFim) {
+                const dataMarco = new Date(marco.dtFinal);
+                const inicio = new Date(formData.dtInicio);
+                const fim = new Date(formData.dtFim);
+                if (dataMarco < inicio || dataMarco > fim) {
+                    erros[`marco_dtFinal_${idx}`] = 'Data do marco deve estar dentro do período do PDI.';
+                }
+            }
+        });
+        setFieldErrors(erros);
+        return Object.keys(erros).length === 0;
     };
 
     const handleSavePdi = async () => {
+        if (!validateFields()) {
+            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
+            return;
+        }
+        if (currentMarco.titulo || currentMarco.descricao || currentMarco.dtFinal) {
+            const erros = {};
+            if (!currentMarco.titulo || currentMarco.titulo.trim().length < 3) {
+                erros.currentMarcoTitulo = 'Título do marco deve ter pelo menos 3 caracteres.';
+            }
+            if (!currentMarco.descricao || currentMarco.descricao.trim().length < 5) {
+                erros.currentMarcoDescricao = 'Descrição do marco deve ter pelo menos 5 caracteres.';
+            }
+            if (!currentMarco.dtFinal) {
+                erros.currentMarcoDtFinal = 'Data final do marco é obrigatória.';
+            }
+            if (currentMarco.dtFinal && formData.dtInicio && formData.dtFim) {
+                const dataMarco = new Date(currentMarco.dtFinal);
+                const inicio = new Date(formData.dtInicio);
+                const fim = new Date(formData.dtFim);
+                if (dataMarco < inicio || dataMarco > fim) {
+                    erros.currentMarcoDtFinal = 'Data do marco deve estar dentro do período do PDI.';
+                }
+            }
+            setFieldErrors(prev => ({ ...prev, ...erros }));
+            if (Object.keys(erros).length > 0) {
+                setToast({ message: 'Finalize ou corrija o marco em edição antes de salvar o PDI.', type: 'error' });
+                return;
+            }
+        }
+        const erros = validarPdiCompleto(formData);
+        if (erros.length > 0) {
+            setToast({ message: erros.join('\n'), type: 'error' });
+            return;
+        }
         if (!formData.marcos || formData.marcos.length === 0) {
             setToast({ message: 'Por favor, adicione pelo menos um marco.', type: 'error' });
             return;
         }
-
         setLoading(true);
         setError(null);
         try {
             const pdiData = {
                 titulo: formData.titulo,
                 descricao: formData.descricao,
-                dataInicio: formData.dataInicio,
-                dataFim: formData.dataFim,
+                dtInicio: formData.dtInicio,
+                dtFim: formData.dtFim,
                 idUsuario,
                 idDestinatario: Number(formData.colaboradorId),
                 status: 'EM_ANDAMENTO',
@@ -181,8 +290,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             colaboradorId: undefined,
             titulo: '',
             descricao: '',
-            dataInicio: '',
-            dataFim: '',
+            dtInicio: '',
+            dtFim: '',
             marcos: [],
         });
         setCurrentMarco({ titulo: '', descricao: '', dtFinal: '' });
@@ -202,7 +311,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
             {toast && (
                 <Toast
-                    message={toast.message}
+                    message={toast.message.split('\n').map((msg, idx) => <div key={idx}>{msg}</div>)}
                     type={toast.type}
                     onClose={() => setToast(null)}
                 />
@@ -223,7 +332,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                     <button
                         className={`flex-1 text-center py-2 px-4 ${step === 'milestones' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
                         onClick={() => setStep('milestones')}
-                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim}
+                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dtInicio || !formData.dtFim}
                     >
                         Marcos e Etapas
                     </button>
@@ -241,6 +350,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                     value={formData.colaboradorId}
                                     onChange={e => handleSelectChange('colaboradorId', e.target.value)}
                                     disabled={loading || usersLoading}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                                 >
                                     <option value="">Selecione o colaborador</option>
                                     {colaboradoresList.map(colaborador => (
@@ -249,6 +359,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                         </option>
                                     ))}
                                 </select>
+                                {fieldErrors.colaboradorId && <div className="text-red-500 text-xs mt-1">{fieldErrors.colaboradorId}</div>}
                             </div>
                         </div>
 
@@ -263,6 +374,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 placeholder="Ex: Desenvolvimento de Habilidades de Liderança"
                             />
+                            {fieldErrors.titulo && <div className="text-red-500 text-xs mt-1">{fieldErrors.titulo}</div>}
                         </div>
 
                         <div className="mb-4">
@@ -276,30 +388,33 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 placeholder="Descreva os objetivos e metas deste PDI..."
                             ></textarea>
+                            {fieldErrors.descricao && <div className="text-red-500 text-xs mt-1">{fieldErrors.descricao}</div>}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
-                                <label htmlFor="dataInicio" className="block text-sm font-medium text-gray-700">Data de Início</label>
+                                <label htmlFor="dtInicio" className="block text-sm font-medium text-gray-700">Data de Início</label>
                                 <input
                                     type="date"
-                                    name="dataInicio"
-                                    id="dataInicio"
-                                    value={formData.dataInicio}
+                                    name="dtInicio"
+                                    id="dtInicio"
+                                    value={formData.dtInicio}
                                     onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 />
+                                {fieldErrors.dtInicio && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtInicio}</div>}
                             </div>
                             <div>
-                                <label htmlFor="dataFim" className="block text-sm font-medium text-gray-700">Data de Término</label>
+                                <label htmlFor="dtFim" className="block text-sm font-medium text-gray-700">Data de Término</label>
                                 <input
                                     type="date"
-                                    name="dataFim"
-                                    id="dataFim"
-                                    value={formData.dataFim}
+                                    name="dtFim"
+                                    id="dtFim"
+                                    value={formData.dtFim}
                                     onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                 />
+                                {fieldErrors.dtFim && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtFim}</div>}
                             </div>
                         </div>
                         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -330,6 +445,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                         placeholder="Ex: Concluir curso de React"
                                     />
+                                    {fieldErrors.currentMarcoTitulo && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoTitulo}</div>}
                                 </div>
                                 <div>
                                     <label htmlFor="marcoDescricao" className="block text-sm font-medium text-gray-700">Descrição do Marco</label>
@@ -342,6 +458,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                         placeholder="Descreva as atividades para este marco..."
                                     ></textarea>
+                                    {fieldErrors.currentMarcoDescricao && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDescricao}</div>}
                                 </div>
                                 <div>
                                     <label htmlFor="marcoDtFinal" className="block text-sm font-medium text-gray-700">Data Final do Marco</label>
@@ -353,6 +470,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                         onChange={handleMarcoChange}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
+                                    {fieldErrors.currentMarcoDtFinal && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDtFinal}</div>}
                                 </div>
                                 {marcoError && <p className="text-red-500 text-sm">{marcoError}</p>}
                                 <Button onClick={handleAddMarco} className="w-full" disabled={loading}>Adicionar Marco</Button>
@@ -365,10 +483,13 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                     <div key={index} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
                                         <div>
                                             <p className="font-medium">{marco.titulo}</p>
+                                            {fieldErrors[`marco_titulo_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_titulo_${index}`]}</div>}
                                             <p className="text-sm text-gray-600">{marco.descricao}</p>
+                                            {fieldErrors[`marco_descricao_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_descricao_${index}`]}</div>}
                                             <p className="text-xs text-gray-500">
                                                 Data Final: {formatDate(marco.dtFinal)}
                                             </p>
+                                            {fieldErrors[`marco_dtFinal_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_dtFinal_${index}`]}</div>}
                                         </div>
                                         <button onClick={() => handleRemoveMarco(index)} className="text-red-500 hover:text-red-700 text-sm" disabled={loading}>Remover</button>
                                     </div>
