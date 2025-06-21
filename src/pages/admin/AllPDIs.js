@@ -102,58 +102,72 @@ const AllPDIs = () => {
                 </div>
             </div>
             <p className="text-gray-600">Visualize e gerencie todos os Planos de Desenvolvimento Individual</p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">PDIs Ativos</CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{pdis.filter(p => p.status === 'ATIVO' || p.status === 'EM_ANDAMENTO').length}</div>
-                        <p className="text-xs text-muted-foreground">+Novos este trimestre (Implementar cálculo)</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">PDIs Concluídos</CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{pdis.filter(p => p.status === 'CONCLUIDO').length}</div>
-                        <p className="text-xs text-muted-foreground">+Novos no último mês (Implementar cálculo)</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {(() => {
-                            const totalPDIs = pdis.length;
-                            const pdisConcluidos = pdis.filter(p => p.status === 'CONCLUIDO').length;
-                            const taxaConclusao = totalPDIs > 0 ? Math.round((pdisConcluidos / totalPDIs) * 100) : 0;
-                            return (
-                                <>
-                                    <div className="text-2xl font-bold">{taxaConclusao}%</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        {pdisConcluidos} de {totalPDIs} PDIs concluídos
-                                    </p>
-                                </>
-                            );
-                        })()}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Colaboradores com PDI</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{new Set(pdis.map(p => p.idDestinatario)).size}</div>
-                        <p className="text-xs text-muted-foreground">% do total de colaboradores (Implementar cálculo)</p>
-                    </CardContent>
-                </Card>
+            <div className="flex gap-4">
+                {/* PDIs Ativos */}
+                <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <div className="text-gray-500 text-sm">PDIs Ativos</div>
+                            <div className="text-3xl font-bold">{pdis.filter(p => p.status === 'ATIVO' || p.status === 'EM_ANDAMENTO').length}</div>
+                            {/* <div className="text-xs text-gray-400 mt-1">+Novos este trimestre (Implementar cálculo)</div> */}
+                        </div>
+                        <div className="bg-blue-100 rounded-full p-2">
+                            <Calendar className="text-blue-400" />
+                        </div>
+                    </div>
+                </div>
+                {/* PDIs Concluídos */}
+                <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <div className="text-gray-500 text-sm">PDIs Concluídos</div>
+                            <div className="text-3xl font-bold">{pdis.filter(p => p.status === 'CONCLUIDO').length}</div>
+                            {/* <div className="text-xs text-gray-400 mt-1">+Novos no último mês (Implementar cálculo)</div> */}
+                        </div>
+                        <div className="bg-green-100 rounded-full p-2">
+                            <FileText className="text-green-400" />
+                        </div>
+                    </div>
+                </div>
+                {/* Taxa de Conclusão */}
+                <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <div className="text-gray-500 text-sm">Taxa de Conclusão</div>
+                            <div className="text-3xl font-bold">
+                                {(() => {
+                                    const totalPDIs = pdis.length;
+                                    const pdisConcluidos = pdis.filter(p => p.status === 'CONCLUIDO').length;
+                                    const taxaConclusao = totalPDIs > 0 ? Math.round((pdisConcluidos / totalPDIs) * 100) : 0;
+                                    return `${taxaConclusao}%`;
+                                })()}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                                {(() => {
+                                    const totalPDIs = pdis.length;
+                                    const pdisConcluidos = pdis.filter(p => p.status === 'CONCLUIDO').length;
+                                    return `${pdisConcluidos} de ${totalPDIs} PDIs concluídos`;
+                                })()}
+                            </div>
+                        </div>
+                        <div className="bg-yellow-100 rounded-full p-2">
+                            <TrendingUp className="text-yellow-500" />
+                        </div>
+                    </div>
+                </div>
+                {/* Colaboradores com PDI */}
+                <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-[220px]">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <div className="text-gray-500 text-sm">Colaboradores com PDI</div>
+                            <div className="text-3xl font-bold">{new Set(pdis.map(p => p.idDestinatario)).size}</div>
+                            {/* <div className="text-xs text-gray-400 mt-1">% do total de colaboradores (Implementar cálculo)</div> */}
+                        </div>
+                        <div className="bg-purple-100 rounded-full p-2">
+                            <Users className="text-purple-400" />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
