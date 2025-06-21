@@ -196,10 +196,11 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                                         />
                                     </>
                                 ) : (
-                                    <>
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dtInicio)}</span><br />
+                                    <div className="flex items-center gap-4">
+                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Início: {formatDate(pdi.dtInicio)}</span>
+                                        <span className="text-gray-400">—</span>
                                         <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-gray-500" /> Término: {formatDate(pdi.dtFim)}</span>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                             <div>
