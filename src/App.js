@@ -17,6 +17,7 @@ import MeuPDIsOverview from './pages/user/MeuPDIsOverview';
 import ToastProvider from './components/ui/ToastProvider';
 import Oops from './components/Oops';
 import './styles/globals.css';
+import ComunicadosManagement from './pages/admin/ComunicadosManagement';
 
 // Componente para proteger rotas
 const ProtectedRoute = ({ children, role }) => {
@@ -64,6 +65,7 @@ function App() {
             {/* Rotas de Admin */}
             <Route path="admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="admin/users" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
+            <Route path="admin/comunicados" element={<ProtectedRoute role="admin"><ComunicadosManagement /></ProtectedRoute>} />
             <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
 
             {/* Rotas de Gestor */}
