@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import dados from '../../dados.json';
 import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
 import { toast } from 'react-toastify';
@@ -15,7 +14,9 @@ export default function UserCreateModal({ open, onClose, onSave }) {
   });
 
   const [cargosDisponiveis, setCargosDisponiveis] = useState([]);
+  const [setoresDisponiveis, setSetoresDisponiveis] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSetores, setIsLoadingSetores] = useState(false);
   const [emailStatus, setEmailStatus] = useState({
     isValid: false,
     isAvailable: false,
@@ -23,14 +24,34 @@ export default function UserCreateModal({ open, onClose, onSave }) {
   });
   const [errors, setErrors] = useState({});
 
+  // Carregar setores e cargos da API
+  useEffect(() => {
+    const loadSetoresECargos = async () => {
+      setIsLoadingSetores(true);
+      try {
+        const data = await userService.getSetoresECargos();
+        setSetoresDisponiveis(data.setores || []);
+      } catch (error) {
+        console.error('Erro ao carregar setores e cargos:', error);
+        toast.error('Erro ao carregar setores e cargos. Tente novamente.');
+      } finally {
+        setIsLoadingSetores(false);
+      }
+    };
+
+    if (open) {
+      loadSetoresECargos();
+    }
+  }, [open]);
+
   useEffect(() => {
     if (form.setor) {
-      const setorObj = dados.setores.find(s => s.setor === form.setor);
+      const setorObj = setoresDisponiveis.find(s => s.setor === form.setor);
       setCargosDisponiveis(setorObj ? setorObj.cargos : []);
     } else {
       setCargosDisponiveis([]);
     }
-  }, [form.setor]);
+  }, [form.setor, setoresDisponiveis]);
 
   useEffect(() => {
     if (open) {
@@ -261,9 +282,12 @@ export default function UserCreateModal({ open, onClose, onSave }) {
               value={form.setor}
               onChange={handleChange}
               className={`border rounded px-3 py-2 ${errors.setor ? 'border-red-500' : 'border-gray-300'}`}
+              disabled={isLoadingSetores}
             >
-              <option value="">Selecione um setor</option>
-              {dados.setores.map((s) => (
+              <option value="">
+                {isLoadingSetores ? 'Carregando setores...' : 'Selecione um setor'}
+              </option>
+              {setoresDisponiveis.map((s) => (
                 <option key={s.setor} value={s.setor}>{s.setor}</option>
               ))}
             </select>

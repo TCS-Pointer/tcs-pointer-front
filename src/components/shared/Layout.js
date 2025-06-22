@@ -96,11 +96,12 @@ const Layout = () => {
             <Link to="/perfil" className="flex items-center space-x-2 flex-1 cursor-pointer group hover:bg-gray-100 rounded px-2 py-1 transition-colors">
               <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-gray-600">
-                  {user?.nome?.charAt(0) || 'U'}
+                  {console.log("user", user)}
+                  {user?.name?.charAt(0) || 'U'}
                 </span>
               </div>
               <div className="text-sm">
-                <p className="font-medium text-gray-900 group-hover:underline">{user?.nome || 'Usuário'}</p>
+                <p className="font-medium text-gray-900 group-hover:underline">{user?.name || 'Usuário'}</p>
                 <p
                   className="text-gray-500 max-w-[100px] truncate"
                   title={user?.email}
