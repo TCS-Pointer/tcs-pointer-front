@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import dados from '../../dados.json';
 import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
 import Toast from '../ui/Toast';
-
 
 export default function UserModal({ open, onClose, onSave, mode = 'create', user = {} }) {
   const [form, setForm] = useState({
@@ -16,6 +14,8 @@ export default function UserModal({ open, onClose, onSave, mode = 'create', user
   });
 
   const [cargosDisponiveis, setCargosDisponiveis] = useState([]);
+  const [setoresDisponiveis, setSetoresDisponiveis] = useState([]);
+  const [isLoadingSetores, setIsLoadingSetores] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,14 +26,37 @@ export default function UserModal({ open, onClose, onSave, mode = 'create', user
     isChecking: false
   });
 
+  // Carregar setores e cargos da API
+  useEffect(() => {
+    const loadSetoresECargos = async () => {
+      setIsLoadingSetores(true);
+      try {
+        const data = await userService.getSetoresECargos();
+        setSetoresDisponiveis(data.setores || []);
+      } catch (error) {
+        console.error('Erro ao carregar setores e cargos:', error);
+        setToast({
+          message: 'Erro ao carregar setores e cargos. Tente novamente.',
+          type: 'error'
+        });
+      } finally {
+        setIsLoadingSetores(false);
+      }
+    };
+
+    if (open) {
+      loadSetoresECargos();
+    }
+  }, [open]);
+
   useEffect(() => {
     if (form.setor) {
-      const setorObj = dados.setores.find(s => s.setor === form.setor);
+      const setorObj = setoresDisponiveis.find(s => s.setor === form.setor);
       setCargosDisponiveis(setorObj ? setorObj.cargos : []);
     } else {
       setCargosDisponiveis([]);
     }
-  }, [form.setor]);
+  }, [form.setor, setoresDisponiveis]);
 
   useEffect(() => {
     if (open) {
@@ -306,9 +329,12 @@ export default function UserModal({ open, onClose, onSave, mode = 'create', user
               onChange={handleChange}
               className="border rounded px-3 py-2"
               required
+              disabled={isLoadingSetores}
             >
-              <option value="">Selecione um setor</option>
-              {dados.setores.map((s) => (
+              <option value="">
+                {isLoadingSetores ? 'Carregando setores...' : 'Selecione um setor'}
+              </option>
+              {setoresDisponiveis.map((s) => (
                 <option key={s.setor} value={s.setor}>{s.setor}</option>
               ))}
             </select>

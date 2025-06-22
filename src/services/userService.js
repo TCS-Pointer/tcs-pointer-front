@@ -78,6 +78,18 @@ export const userService = {
     }
   },
 
+  // Buscar setores e cargos da API
+  getSetoresECargos: async () => {
+    try {
+      const response = await api.get('/api/setor-cargo');
+      return response.data.content;
+    } catch (error) {
+      console.error('Erro na API getSetoresECargos:', error);
+      throw error;
+    }
+  },
+
+  // Solicitar redefinição de senha
   sendPasswordResetRequest: async (email) => {
     try {
       const response = await api.post('/api/usuarios/primeiro-acesso/reenviar', {

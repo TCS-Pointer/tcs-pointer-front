@@ -15,6 +15,7 @@ import Unauthorized from './components/Unauthorized';
 import AllPDIs from './pages/admin/AllPDIs';
 import MeuPDIsOverview from './pages/user/MeuPDIsOverview';
 import ToastProvider from './components/ui/ToastProvider';
+import Oops from './components/Oops';
 import './styles/globals.css';
 
 // Componente para proteger rotas
@@ -69,7 +70,7 @@ function App() {
             <Route path="gestor" element={<ProtectedRoute role="gestor"><GestorDashboard /></ProtectedRoute>} />
 
             {/* Rota para páginas não encontradas dentro do layout */}
-            <Route path="*" element={<Unauthorized />} />
+            <Route path="*" element={<Oops />} />
           </Route>
 
           {/* Rota padrão - redireciona para login */}

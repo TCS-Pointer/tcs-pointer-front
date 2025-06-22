@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import dados from '../../dados.json';
 import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
 import { toast } from 'react-toastify';
@@ -16,17 +15,38 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
   });
 
   const [cargosDisponiveis, setCargosDisponiveis] = useState([]);
+  const [setoresDisponiveis, setSetoresDisponiveis] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingPasswordReset, setIsSendingPasswordReset] = useState(false);
+  const [isLoadingSetores, setIsLoadingSetores] = useState(false);
+
+  useEffect(() => {
+    const loadSetoresECargos = async () => {
+      setIsLoadingSetores(true);
+      try {
+        const data = await userService.getSetoresECargos();
+        setSetoresDisponiveis(data.setores || []);
+      } catch (error) {
+        console.error('Erro ao carregar setores e cargos:', error);
+        toast.error('Erro ao carregar setores e cargos. Tente novamente.');
+      } finally {
+        setIsLoadingSetores(false);
+      }
+    };
+
+    if (open) {
+      loadSetoresECargos();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (form.setor) {
-      const setorObj = dados.setores.find(s => s.setor === form.setor);
+      const setorObj = setoresDisponiveis.find(s => s.setor === form.setor);
       setCargosDisponiveis(setorObj ? setorObj.cargos : []);
     } else {
       setCargosDisponiveis([]);
     }
-  }, [form.setor]);
+  }, [form.setor, setoresDisponiveis]);
 
   useEffect(() => {
     if (open && user) {
@@ -216,9 +236,12 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
               onChange={handleChange}
               className="border rounded px-3 py-2"
               required
+              disabled={isLoadingSetores}
             >
-              <option value="">Selecione um setor</option>
-              {dados.setores.map((s) => (
+              <option value="">
+                {isLoadingSetores ? 'Carregando setores...' : 'Selecione um setor'}
+              </option>
+              {setoresDisponiveis.map((s) => (
                 <option key={s.setor} value={s.setor}>{s.setor}</option>
               ))}
             </select>
