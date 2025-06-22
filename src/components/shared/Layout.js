@@ -16,7 +16,7 @@ const MENU_CONFIG = {
   admin: [
     { to: "/", label: "Dashboard", icon: ICONS.dashboard },
     { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
-    { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/admin/comunicados", label: "Comunicados", icon: ICONS.comunicados },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
     { to: "/pdi", label: "Todos os PDIs", icon: ICONS.pdi },
     { to: "/admin/users", label: "Usuários", icon: ICONS.users },
