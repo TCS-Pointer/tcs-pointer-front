@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import dados from '../../dados.json';
 import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
-import Toast from '../ui/Toast';
+import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function UserEditModal({ open, onClose, onSave, user }) {
@@ -10,15 +10,14 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    cargo: '',
-    setor: '',
     tipoUsuario: 'COLABORADOR',
-    status: 'ATIVO',
+    setor: '',
+    cargo: '',
   });
 
   const [cargosDisponiveis, setCargosDisponiveis] = useState([]);
-  const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingPasswordReset, setIsSendingPasswordReset] = useState(false);
 
   useEffect(() => {
     if (form.setor) {
@@ -31,13 +30,13 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
 
   useEffect(() => {
     if (open && user) {
+      console.log('Dados do usuário recebidos no modal:', user);
       setForm({
         nome: user.nome || '',
         email: user.email || '',
-        cargo: user.cargo || '',
-        setor: user.setor || '',
         tipoUsuario: user.tipoUsuario || 'COLABORADOR',
-        status: user.status || 'ATIVO',
+        setor: user.setor || '',
+        cargo: user.cargo || '',
       });
     }
   }, [open, user]);
@@ -55,17 +54,13 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
     const requiredFields = {
       nome: 'Nome',
       email: 'Email',
-      cargo: 'Cargo',
-      setor: 'Setor',
       tipoUsuario: 'Tipo de Usuário',
-      status: 'Status'
+      setor: 'Setor',
+      cargo: 'Cargo'
     };
     for (const [field, label] of Object.entries(requiredFields)) {
       if (!form[field] || form[field].trim() === '') {
-        setToast({
-          message: `O campo ${label} é obrigatório`,
-          type: 'error'
-        });
+        toast.error(`O campo ${label} é obrigatório`);
         return false;
       }
     }
@@ -77,20 +72,53 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
     if (!validateForm()) return;
     const nomeComposto = form.nome.trim().includes(' ');
     if (!nomeComposto) {
-      setToast({ message: 'Por favor, insira o nome completo do usuário', type: 'error' });
+      toast.error('Por favor, insira o nome completo do usuário');
       return;
     }
+    
+    // Verifica se o keycloakId existe
+    if (!user.keycloakId) {
+      toast.error('ID do usuário não encontrado. Tente novamente.');
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      await userService.updateUser(user.id, form);
-      setToast({ message: 'Usuário atualizado com sucesso!', type: 'success' });
+      // Envia apenas os campos editáveis
+      const dadosParaEnviar = {
+        nome: form.nome,
+        tipoUsuario: form.tipoUsuario,
+        setor: form.setor,
+        cargo: form.cargo
+      };
+      
+      await userService.updateUser(user.keycloakId, dadosParaEnviar);
+      toast.success('Usuário atualizado com sucesso!');
       await new Promise(resolve => setTimeout(resolve, 1500));
       onClose();
       onSave(form);
     } catch (error) {
-      setToast({ message: 'Erro ao atualizar usuário. Por favor, tente novamente.', type: 'error' });
+      toast.error('Erro ao atualizar usuário. Por favor, tente novamente.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!form.email) {
+      toast.error('Email do usuário não encontrado');
+      return;
+    }
+
+    setIsSendingPasswordReset(true);
+    try {
+      await userService.sendPasswordResetRequest(form.email);
+      toast.success('Solicitação de redefinição de senha enviada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+      toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
+    } finally {
+      setIsSendingPasswordReset(false);
     }
   };
 
@@ -98,13 +126,6 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
       <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative animate-fade-in">
         <button
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
@@ -166,7 +187,7 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                className={`border rounded px-3 py-2 w-full bg-gray-50`}
+                className="border rounded px-3 py-2 w-full bg-gray-50"
                 required
                 readOnly
                 disabled
@@ -202,21 +223,40 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
               ))}
             </select>
           </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium mb-1">Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="border rounded px-3 py-2"
-              required
-              disabled={loggedUser?.email === form.email}
-            >
-              <option value="ATIVO">Ativo</option>
-              <option value="INATIVO">Inativo</option>
-            </select>
-          </div>
         </form>
+        
+        {/* Botão de redefinição de senha */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Redefinição de Senha</h3>
+              <p className="text-sm text-gray-600">Envie um email para o usuário redefinir sua senha</p>
+            </div>
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={isSendingPasswordReset || !form.email}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                isSendingPasswordReset || !form.email
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-orange-600 text-white hover:bg-orange-700'
+              }`}
+            >
+              {isSendingPasswordReset ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Enviando...
+                </span>
+              ) : (
+                'Solicitar Redefinição'
+              )}
+            </button>
+          </div>
+        </div>
+        
         <div className="flex justify-end gap-2 mt-8">
           <button
             type="button"

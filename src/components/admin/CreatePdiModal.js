@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
-import Toast from '../ui/Toast';
+import { toast } from 'react-toastify';
 import { validarPdiCompleto, validarDuracaoMinima } from '../../services/pdiValidationService';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
@@ -31,7 +31,6 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const [colaboradoresList, setColaboradoresList] = useState([]);
     const [usersLoading, setUsersLoading] = useState(false);
     const [usersError, setUsersError] = useState(null);
-    const [toast, setToast] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
 
     const [idUsuario, setIdUsuario] = useState(null);
@@ -116,10 +115,9 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
 
     const handleNextStep = () => {
         if (!validateFields()) {
-            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
+            toast.error('Verifique os campos destacados e tente novamente.');
             return;
         }
-        setToast(null);
         setStep('milestones');
     };
 
@@ -144,10 +142,9 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         }
         setFieldErrors(prev => ({ ...prev, ...erros }));
         if (Object.keys(erros).length > 0) {
-            setToast({ message: 'Verifique os campos destacados do marco e tente novamente.', type: 'error' });
+            toast.error('Verifique os campos destacados do marco e tente novamente.');
             return;
         }
-        setToast(null);
         setFormData(prevData => ({
             ...prevData,
             marcos: [...prevData.marcos, { ...currentMarco, status: 'PENDENTE' }]
@@ -214,7 +211,7 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
 
     const handleSavePdi = async () => {
         if (!validateFields()) {
-            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
+            toast.error('Verifique os campos destacados e tente novamente.');
             return;
         }
         if (currentMarco.titulo || currentMarco.descricao || currentMarco.dtFinal) {
@@ -238,47 +235,40 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             }
             setFieldErrors(prev => ({ ...prev, ...erros }));
             if (Object.keys(erros).length > 0) {
-                setToast({ message: 'Finalize ou corrija o marco em edição antes de salvar o PDI.', type: 'error' });
+                toast.error('Finalize ou corrija o marco em edição antes de salvar o PDI.');
                 return;
             }
         }
         const erros = validarPdiCompleto(formData);
         if (erros.length > 0) {
-            setToast({ message: erros.join('\n'), type: 'error' });
+            toast.error(erros.join('\n'));
             return;
         }
         if (!formData.marcos || formData.marcos.length === 0) {
-            setToast({ message: 'Por favor, adicione pelo menos um marco.', type: 'error' });
+            toast.error("É necessário adicionar pelo menos um marco ao PDI.");
             return;
         }
+
         setLoading(true);
         setError(null);
+
+        const pdiData = {
+            ...formData,
+            gestorId: idUsuario,
+            status: 'ATIVO',
+        };
+
         try {
-            const pdiData = {
-                titulo: formData.titulo,
-                descricao: formData.descricao,
-                dtInicio: formData.dtInicio,
-                dtFim: formData.dtFim,
-                idUsuario,
-                idDestinatario: Number(formData.colaboradorId),
-                status: 'EM_ANDAMENTO',
-                marcos: formData.marcos.map(marco => ({
-                    titulo: marco.titulo,
-                    descricao: marco.descricao,
-                    dtFinal: marco.dtFinal,
-                    status: marco.status || 'PENDENTE'
-                }))
-            };
-            console.log('Enviando PDI:', pdiData);
-            const newPdi = await pdiService.createPdi(pdiData);
-            console.log('PDI criado com sucesso:', newPdi);
-            setToast({ message: 'PDI criado com sucesso!', type: 'success' });
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            onSuccess(newPdi);
+            await pdiService.createPdi(pdiData);
+            toast.success('PDI criado com sucesso!');
             handleClose();
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (err) {
-            setToast({ message: 'Erro ao criar o PDI. Verifique os dados e tente novamente.', type: 'error' });
-            console.error('Erro na criação do PDI:', err);
+            const errorMessage = err.response?.data?.message || 'Erro ao criar o PDI.';
+            setError(errorMessage);
+            toast.error(`Erro: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -294,219 +284,250 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             dtFim: '',
             marcos: [],
         });
-        setCurrentMarco({ titulo: '', descricao: '', dtFinal: '' });
+        setCurrentMarco({
+            titulo: '',
+            descricao: '',
+            dtFinal: '',
+        });
+        setLoading(false);
         setError(null);
         setMarcoError(null);
-        setUsersError(null);
-        setLoading(false);
-        setToast(null);
+        setFieldErrors({});
         onClose();
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {
+        return null;
+    }
 
-    console.log('Final rendering - colaboradoresList:', colaboradoresList);
+    const today = new Date().toISOString().split('T')[0];
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-            {toast && (
-                <Toast
-                    message={toast.message.split('\n').map((msg, idx) => <div key={idx}>{msg}</div>)}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
-            <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-xl font-semibold text-gray-900">Novo Plano de Desenvolvimento</h3>
-                    <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">&times;</button>
-                </div>
-                <div className="flex border-b mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] flex flex-col relative animate-fade-in-down">
+                
+                <header className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                        {step === 'basicInfo' ? 'Criar Novo Plano de Desenvolvimento' : 'Adicionar Marcos ao PDI'}
+                    </h2>
                     <button
-                        className={`flex-1 text-center py-2 px-4 ${step === 'basicInfo' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-                        onClick={() => setStep('basicInfo')}
-                        disabled={loading || usersLoading}
+                        onClick={handleClose}
+                        className="text-gray-400 hover:text-gray-600 transition-colors rounded-full p-2"
+                        disabled={loading}
                     >
-                        Informações Básicas
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
-                    <button
-                        className={`flex-1 text-center py-2 px-4 ${step === 'milestones' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-                        onClick={() => setStep('milestones')}
-                        disabled={loading || usersLoading || !formData.colaboradorId || !formData.titulo || !formData.descricao || !formData.dtInicio || !formData.dtFim}
-                    >
-                        Marcos e Etapas
-                    </button>
-                </div>
-                {usersLoading && <p className="text-center text-gray-600">Carregando usuários...</p>}
-                {usersError && <p className="text-center text-red-600">{usersError}</p>}
-                {!usersLoading && !usersError && step === 'basicInfo' && (
-                    <div>
-                        <p className="text-gray-600 mb-4">Preencha as informações básicas do Plano de Desenvolvimento Individual.</p>
+                </header>
 
-                        <div className="grid grid-cols-1 gap-4 mb-4">
-                            <div>
-                                <label htmlFor="colaboradorId" className="block text-sm font-medium text-gray-700">Colaborador</label>
-                                <select
-                                    value={formData.colaboradorId}
-                                    onChange={e => handleSelectChange('colaboradorId', e.target.value)}
-                                    disabled={loading || usersLoading}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                >
-                                    <option value="">Selecione o colaborador</option>
-                                    {colaboradoresList.map(colaborador => (
-                                        <option key={colaborador.id} value={colaborador.id}>
-                                            {colaborador.nome}
-                                        </option>
-                                    ))}
-                                </select>
-                                {fieldErrors.colaboradorId && <div className="text-red-500 text-xs mt-1">{fieldErrors.colaboradorId}</div>}
-                            </div>
+                <div className="p-8 overflow-y-auto flex-grow">
+                    {error && (
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
+                            <p className="font-bold">Erro</p>
+                            <p>{error}</p>
                         </div>
+                    )}
 
-                        <div className="mb-4">
-                            <label htmlFor="titulo" className="block text-sm font-medium text-gray-700">Título do PDI</label>
-                            <input
-                                type="text"
-                                name="titulo"
-                                id="titulo"
-                                value={formData.titulo}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                placeholder="Ex: Desenvolvimento de Habilidades de Liderança"
-                            />
-                            {fieldErrors.titulo && <div className="text-red-500 text-xs mt-1">{fieldErrors.titulo}</div>}
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="descricao" className="block text-sm font-medium text-gray-700">Descrição e Objetivos</label>
-                            <textarea
-                                name="descricao"
-                                id="descricao"
-                                rows="3"
-                                value={formData.descricao}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                placeholder="Descreva os objetivos e metas deste PDI..."
-                            ></textarea>
-                            {fieldErrors.descricao && <div className="text-red-500 text-xs mt-1">{fieldErrors.descricao}</div>}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label htmlFor="dtInicio" className="block text-sm font-medium text-gray-700">Data de Início</label>
-                                <input
-                                    type="date"
-                                    name="dtInicio"
-                                    id="dtInicio"
-                                    value={formData.dtInicio}
-                                    onChange={handleChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                />
-                                {fieldErrors.dtInicio && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtInicio}</div>}
-                            </div>
-                            <div>
-                                <label htmlFor="dtFim" className="block text-sm font-medium text-gray-700">Data de Término</label>
-                                <input
-                                    type="date"
-                                    name="dtFim"
-                                    id="dtFim"
-                                    value={formData.dtFim}
-                                    onChange={handleChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                />
-                                {fieldErrors.dtFim && <div className="text-red-500 text-xs mt-1">{fieldErrors.dtFim}</div>}
-                            </div>
-                        </div>
-                        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                        <div className="flex justify-end space-x-4">
-                            <Button variant="outline" onClick={handleClose} disabled={loading || usersLoading}>Cancelar</Button>
-                            <Button onClick={handleNextStep} disabled={loading || usersLoading || !!error}>
-                                Próximo: Marcos e Etapas
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {!usersLoading && !usersError && step === 'milestones' && (
-                    <div>
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Marcos e Etapas</h4>
-                        <p className="text-gray-600 mb-4">Detalhe os marcos e etapas para este PDI.</p>
-                        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                            <h5 className="font-semibold text-gray-700 mb-2">Adicionar Novo Marco</h5>
-                            <div className="space-y-3">
+                    {step === 'basicInfo' ? (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label htmlFor="marcoTitulo" className="block text-sm font-medium text-gray-700">Título do Marco</label>
+                                    <label htmlFor="colaboradorId" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Colaborador
+                                    </label>
+                                    {usersLoading ? <p>Carregando colaboradores...</p> :
+                                     usersError ? <p className="text-red-500">{usersError}</p> :
+                                     <select
+                                         id="colaboradorId"
+                                         name="colaboradorId"
+                                         value={formData.colaboradorId}
+                                         onChange={handleChange}
+                                         className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.colaboradorId ? 'border-red-500' : 'border-gray-300'}`}
+                                     >
+                                         <option value="">Selecione um Colaborador</option>
+                                         {colaboradoresList.map(user => (
+                                             <option key={user.id} value={user.id}>{user.nome}</option>
+                                         ))}
+                                     </select>
+                                    }
+                                    {fieldErrors.colaboradorId && <p className="text-red-500 text-xs mt-1">{fieldErrors.colaboradorId}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="titulo" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Título do PDI
+                                    </label>
                                     <input
                                         type="text"
+                                        id="titulo"
                                         name="titulo"
-                                        id="marcoTitulo"
-                                        value={currentMarco.titulo}
-                                        onChange={handleMarcoChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                        placeholder="Ex: Concluir curso de React"
+                                        value={formData.titulo}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.titulo ? 'border-red-500' : 'border-gray-300'}`}
                                     />
-                                    {fieldErrors.currentMarcoTitulo && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoTitulo}</div>}
+                                    {fieldErrors.titulo && <p className="text-red-500 text-xs mt-1">{fieldErrors.titulo}</p>}
                                 </div>
+                            </div>
+                            <div>
+                                <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Descrição
+                                </label>
+                                <textarea
+                                    id="descricao"
+                                    name="descricao"
+                                    rows="4"
+                                    value={formData.descricao}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.descricao ? 'border-red-500' : 'border-gray-300'}`}
+                                ></textarea>
+                                {fieldErrors.descricao && <p className="text-red-500 text-xs mt-1">{fieldErrors.descricao}</p>}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label htmlFor="marcoDescricao" className="block text-sm font-medium text-gray-700">Descrição do Marco</label>
-                                    <textarea
-                                        name="descricao"
-                                        id="marcoDescricao"
-                                        rows="2"
-                                        value={currentMarco.descricao}
-                                        onChange={handleMarcoChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                        placeholder="Descreva as atividades para este marco..."
-                                    ></textarea>
-                                    {fieldErrors.currentMarcoDescricao && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDescricao}</div>}
-                                </div>
-                                <div>
-                                    <label htmlFor="marcoDtFinal" className="block text-sm font-medium text-gray-700">Data Final do Marco</label>
+                                    <label htmlFor="dtInicio" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Data de Início
+                                    </label>
                                     <input
                                         type="date"
-                                        name="dtFinal"
-                                        id="marcoDtFinal"
-                                        value={currentMarco.dtFinal}
-                                        onChange={handleMarcoChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                        id="dtInicio"
+                                        name="dtInicio"
+                                        min={today}
+                                        value={formData.dtInicio}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.dtInicio ? 'border-red-500' : 'border-gray-300'}`}
                                     />
-                                    {fieldErrors.currentMarcoDtFinal && <div className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDtFinal}</div>}
+                                    {fieldErrors.dtInicio && <p className="text-red-500 text-xs mt-1">{fieldErrors.dtInicio}</p>}
                                 </div>
-                                {marcoError && <p className="text-red-500 text-sm">{marcoError}</p>}
-                                <Button onClick={handleAddMarco} className="w-full" disabled={loading}>Adicionar Marco</Button>
+                                <div>
+                                    <label htmlFor="dtFim" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Data de Término
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="dtFim"
+                                        name="dtFim"
+                                        min={formData.dtInicio || today}
+                                        value={formData.dtFim}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.dtFim ? 'border-red-500' : 'border-gray-300'}`}
+                                    />
+                                    {fieldErrors.dtFim && <p className="text-red-500 text-xs mt-1">{fieldErrors.dtFim}</p>}
+                                </div>
                             </div>
                         </div>
-                        {formData.marcos.length > 0 && (
-                            <div className="space-y-3">
-                                <h5 className="font-semibold text-gray-700">Marcos Adicionados</h5>
-                                {formData.marcos.map((marco, index) => (
-                                    <div key={index} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
-                                        <div>
-                                            <p className="font-medium">{marco.titulo}</p>
-                                            {fieldErrors[`marco_titulo_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_titulo_${index}`]}</div>}
-                                            <p className="text-sm text-gray-600">{marco.descricao}</p>
-                                            {fieldErrors[`marco_descricao_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_descricao_${index}`]}</div>}
-                                            <p className="text-xs text-gray-500">
-                                                Data Final: {formatDate(marco.dtFinal)}
-                                            </p>
-                                            {fieldErrors[`marco_dtFinal_${index}`] && <div className="text-red-500 text-xs mt-1">{fieldErrors[`marco_dtFinal_${index}`]}</div>}
-                                        </div>
-                                        <button onClick={() => handleRemoveMarco(index)} className="text-red-500 hover:text-red-700 text-sm" disabled={loading}>Remover</button>
+                    ) : (
+                        // Formulário de marcos (step 2)
+                        <div className="space-y-6">
+                            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4">Adicionar Novo Marco</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                                    <div className="md:col-span-1">
+                                        <label htmlFor="marcoTitulo" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Título do Marco
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="marcoTitulo"
+                                            name="titulo"
+                                            value={currentMarco.titulo}
+                                            onChange={handleMarcoChange}
+                                            className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.currentMarcoTitulo ? 'border-red-500' : 'border-gray-300'}`}
+                                        />
+                                        {fieldErrors.currentMarcoTitulo && <p className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoTitulo}</p>}
                                     </div>
-                                ))}
+                                    <div className="md:col-span-1">
+                                        <label htmlFor="marcoDtFinal" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Data Final
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="marcoDtFinal"
+                                            name="dtFinal"
+                                            value={currentMarco.dtFinal}
+                                            onChange={handleMarcoChange}
+                                            min={formData.dtInicio}
+                                            max={formData.dtFim}
+                                            className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.currentMarcoDtFinal ? 'border-red-500' : 'border-gray-300'}`}
+                                        />
+                                        {fieldErrors.currentMarcoDtFinal && <p className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDtFinal}</p>}
+                                    </div>
+                                    <div className="md:col-span-1 flex items-end">
+                                        <Button onClick={handleAddMarco} className="w-full" disabled={loading}>
+                                            Adicionar Marco
+                                        </Button>
+                                    </div>
+                                    <div className="md:col-span-3">
+                                        <label htmlFor="marcoDescricao" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Descrição do Marco
+                                        </label>
+                                        <textarea
+                                            id="marcoDescricao"
+                                            name="descricao"
+                                            rows="3"
+                                            value={currentMarco.descricao}
+                                            onChange={handleMarcoChange}
+                                            className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all ${fieldErrors.currentMarcoDescricao ? 'border-red-500' : 'border-gray-300'}`}
+                                        ></textarea>
+                                        {fieldErrors.currentMarcoDescricao && <p className="text-red-500 text-xs mt-1">{fieldErrors.currentMarcoDescricao}</p>}
+                                    </div>
+                                </div>
+                                {marcoError && (
+                                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mt-4 rounded-md">
+                                        <p>{marcoError}</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
-
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <div className="flex justify-between space-x-4 mt-6">
-                            <Button variant="outline" onClick={() => setStep('basicInfo')} disabled={loading || usersLoading}>Voltar</Button>
-                            <Button onClick={handleSavePdi} disabled={loading || usersLoading || formData.marcos.length === 0}>
-                                {loading ? 'Salvando PDI...' : 'Salvar PDI Completo'}
-                            </Button>
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-800">Marcos Adicionados</h3>
+                                {formData.marcos.length === 0 ? (
+                                    <div className="text-center py-6 px-4 bg-gray-50 rounded-lg">
+                                        <p className="text-gray-500">Nenhum marco adicionado ainda.</p>
+                                    </div>
+                                ) : (
+                                    <ul className="space-y-4">
+                                        {formData.marcos.map((marco, index) => (
+                                            <li key={index} className="p-4 bg-white border border-gray-200 rounded-lg flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold text-gray-900">{marco.titulo}</p>
+                                                    <p className="text-sm text-gray-600">{marco.descricao}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Data Final: {formatDate(marco.dtFinal)}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRemoveMarco(index)}
+                                                    className="text-red-500 hover:text-red-700 ml-4 p-2 rounded-full hover:bg-red-100 transition-colors"
+                                                    disabled={loading}
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
+                <footer className="flex items-center justify-end p-6 border-t border-gray-200 bg-gray-50">
+                    <Button
+                        variant="ghost"
+                        onClick={step === 'basicInfo' ? handleClose : () => setStep('basicInfo')}
+                        disabled={loading}
+                    >
+                        {step === 'basicInfo' ? 'Cancelar' : 'Voltar'}
+                    </Button>
+                    <Button
+                        onClick={step === 'basicInfo' ? handleNextStep : handleSavePdi}
+                        disabled={loading}
+                        className="ml-4"
+                    >
+                        {loading ? 'Salvando...' : (step === 'basicInfo' ? 'Avançar' : 'Salvar PDI')}
+                    </Button>
+                </footer>
             </div>
         </div>
     );

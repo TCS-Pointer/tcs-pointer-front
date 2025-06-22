@@ -39,7 +39,7 @@ export const userService = {
 
   // Atualizar um usuário
   updateUser: async (id, userData) => {
-    const response = await api.put(`/api/usuarios/atualizar-usuario/${id}`, userData);
+    const response = await api.put(`/api/usuarios/${id}`, userData);
     return response.data.content;
   },
 
@@ -78,9 +78,21 @@ export const userService = {
     }
   },
 
+  sendPasswordResetRequest: async (email) => {
+    try {
+      const response = await api.post('/api/usuarios/primeiro-acesso/reenviar', {
+        email: email
+      });
+      return response.data.content;
+    } catch (error) {
+      console.error('Erro na API sendPasswordResetRequest:', error);
+      throw error;
+    }
+  },
+
 };
 export async function getUsuarioByKeycloakId(keycloakId) {
   const response = await api.get(`/api/usuarios/${keycloakId}`);
   console.log('Resposta da API do ID do usuário:', response.data);
-  return response.data.content; // ajuste conforme a resposta da sua API
+  return response.data.content;
 }  

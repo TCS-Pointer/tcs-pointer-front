@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import passwordService from '../../services/password.service';
-import CenteredToast from '../ui/CenteredToast';
+import { toast } from 'react-toastify';
 
 const PrimeiroAcesso = () => {
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ const PrimeiroAcesso = () => {
         errorMessage = error.response.data.message;
       }
       
-      setErrors({ submit: errorMessage });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -228,16 +228,6 @@ const PrimeiroAcesso = () => {
               )}
             </div>
 
-            {/* Erro geral */}
-            {errors.submit && (
-              <div className="relative w-full rounded-lg border border-red-200 bg-red-50 p-4">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <p className="text-sm text-red-600">{errors.submit}</p>
-                </div>
-              </div>
-            )}
-
             {/* Botão de Submit */}
             <button
               type="submit"
@@ -272,8 +262,6 @@ const PrimeiroAcesso = () => {
           </form>
         </CardContent>
       </Card>
-      
-      <CenteredToast />
     </div>
   );
 };
