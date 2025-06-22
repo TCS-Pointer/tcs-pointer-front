@@ -9,12 +9,15 @@ import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import ComunicadoModal from '../../components/admin/ComunicadoModal';
 import ComunicadoDetalhesModal from '../../components/shared/ComunicadoDetalhesModal';
+import ComunicadoFilters from '../../components/admin/ComunicadoFilters';
 
 const ComunicadosManagement = () => {
   const { user } = useAuth();
   const [comunicados, setComunicados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({ publico: 'todos', setor: '' });
+  const [availableSectors, setAvailableSectors] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [editingComunicado, setEditingComunicado] = useState(null);
@@ -23,9 +26,14 @@ const ComunicadosManagement = () => {
   const loadComunicados = async () => {
     try {
       setLoading(true);
-      // O endpoint /comunicados retorna todos para o admin
-      const data = await comunicadoService.getComunicados(user.sub);
-      // A API retorna um objeto com uma propriedade 'content' que contém o array
+      let data;
+      if (filters.publico === 'gestores') {
+        data = await comunicadoService.getComunicadosGestores(user.sub);
+      } else if (filters.setor) {
+        data = await comunicadoService.getComunicadosPorSetor(filters.setor, user.sub);
+      } else {
+        data = await comunicadoService.getComunicados(user.sub);
+      }
       setComunicados(data.content || []);
     } catch (err) {
       setError('Erro ao carregar comunicados.');
@@ -37,10 +45,30 @@ const ComunicadosManagement = () => {
   };
 
   useEffect(() => {
+    const fetchSectorsForFilter = async () => {
+      if(user?.sub) {
+        try {
+          // Busca todos os comunicados para extrair os setores
+          const data = await comunicadoService.getComunicados(user.sub);
+          if (data.content) {
+            const allSectors = data.content.flatMap(c => c.setores);
+            const uniqueSectors = [...new Set(allSectors)];
+            setAvailableSectors(uniqueSectors.sort());
+          }
+        } catch (err) {
+          // O erro já é tratado em loadComunicados, mas podemos logar se quisermos
+          console.error("Erro ao buscar setores para o filtro:", err);
+        }
+      }
+    };
+    fetchSectorsForFilter();
+  }, [user]);
+
+  useEffect(() => {
     if (user?.sub) {
       loadComunicados();
     }
-  }, [user]);
+  }, [user, filters]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este comunicado?')) {
@@ -79,6 +107,10 @@ const ComunicadosManagement = () => {
     setViewingComunicado(comunicado);
   };
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString || typeof dateString !== 'string') {
       return 'Data inválida';
@@ -106,6 +138,8 @@ const ComunicadosManagement = () => {
           Novo Comunicado
         </Button>
       </div>
+
+      <ComunicadoFilters onFilterChange={handleFilterChange} availableSectors={availableSectors} disabled={loading} />
 
       <Card>
         <CardHeader>
