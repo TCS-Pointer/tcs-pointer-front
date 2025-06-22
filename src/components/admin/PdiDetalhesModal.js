@@ -3,7 +3,7 @@ import api from '../../services/api';
 import { dictionary, formatDate } from "../../utils/Dictionary";
 import { Calendar, CheckCircle, Clock } from 'lucide-react';
 import pdiService from '../../services/pdiService';
-import Toast from '../ui/Toast';
+import { toast } from 'react-toastify';
 import { validarDuracaoMinima } from '../../services/pdiValidationService';
 
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
@@ -17,7 +17,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
         destinatario: pdi?.destinatario || {}
     });
     const [editableMarcos, setEditableMarcos] = useState([]);
-    const [toast, setToast] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
 
     React.useEffect(() => {
@@ -41,7 +40,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             setMarcos(marcos.map(m => m.id === idMarco ? { ...m, status: 'CONCLUIDO' } : m));
             if (onUpdate) onUpdate();
         } catch (err) {
-            setToast({ message: 'Erro ao atualizar status do marco!', type: 'error' });
+            toast.error('Erro ao atualizar status do marco!');
         } finally {
             setLoadingMarco(null);
         }
@@ -89,7 +88,7 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
 
     const handleSave = async () => {
         if (!validateFields()) {
-            setToast({ message: 'Verifique os campos destacados e tente novamente.', type: 'error' });
+            toast.error('Verifique os campos destacados e tente novamente.');
             return;
         }
         try {
@@ -131,12 +130,12 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             setMarcos(newMarcosState);
             setEditableMarcos(newMarcosState.map(m => ({ ...m })));
 
-            setToast({ message: 'PDI e Marcos atualizados com sucesso!', type: 'success' });
+            toast.success('PDI e Marcos atualizados com sucesso!');
             setIsEditing(false);
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error('Erro ao atualizar PDI ou Marcos:', error);
-            setToast({ message: 'Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.', type: 'error' });
+            toast.error('Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.');
         }
     };
 
@@ -148,13 +147,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
             <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
                 <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
                 <div className="flex items-center mb-4">

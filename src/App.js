@@ -13,6 +13,8 @@ import Layout from './components/shared/Layout';
 import Perfil from './pages/Perfil';
 import Unauthorized from './components/Unauthorized';
 import AllPDIs from './pages/admin/AllPDIs';
+import MeuPDIsOverview from './pages/user/MeuPDIsOverview';
+import ToastProvider from './components/ui/ToastProvider';
 import './styles/globals.css';
 
 // Componente para proteger rotas
@@ -38,6 +40,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ToastProvider />
         <Routes>
           {/* Rotas públicas de autenticação */}
           <Route path="/login" element={<Login />} />

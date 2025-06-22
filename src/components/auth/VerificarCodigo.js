@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useNavigate } from 'react-router-dom';
 import passwordService from '../../services/password.service';
 import pointerIcon from '../../components/ico/image.png';
+import { toast } from 'react-toastify';
+
 const schema = z.object({
   code: z.string().min(1, 'O código é obrigatório'),
 });
@@ -15,7 +17,6 @@ const VerificarCodigo = () => {
   const email = location.state?.email || '';
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [resendTimer, setResendTimer] = useState(60);
   const [resending, setResending] = useState(false);
 
@@ -28,15 +29,14 @@ const VerificarCodigo = () => {
 
   const onSubmit = async ({ code }) => {
     setLoading(true);
-    setError(null);
     try {
       await passwordService.verifyCode(email, code);
       navigate('/auth/redefinir-senha', { state: { email } });
     } catch (err) {
       if (err.response?.status === 400) {
-        setError('Código inválido');
+        toast.error('Código inválido');
       } else {
-        setError('Ocorreu um erro ao verificar o código. Tente novamente.');
+        toast.error('Ocorreu um erro ao verificar o código. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -45,15 +45,15 @@ const VerificarCodigo = () => {
 
   const handleResend = async () => {
     setResending(true);
-    setError(null);
     try {
       await passwordService.forgotPassword(email);
+      toast.success('Um novo código foi enviado para o seu email.');
       setResendTimer(60);
     } catch (err) {
       if (err.response?.status === 404) {
-        setError('Email não encontrado');
+        toast.error('Email não encontrado');
       } else {
-        setError('Ocorreu um erro ao reenviar o código. Tente novamente.');
+        toast.error('Ocorreu um erro ao reenviar o código. Tente novamente.');
       }
     } finally {
       setResending(false);
@@ -72,11 +72,6 @@ const VerificarCodigo = () => {
           Digite o código de verificação enviado para <br />
           <span className="font-medium">{email}</span>
         </p>
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Código de Verificação</label>

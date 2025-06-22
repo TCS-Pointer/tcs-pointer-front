@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useNavigate } from 'react-router-dom';
 import passwordService from '../../services/password.service';
 import pointerIcon from '../../components/ico/image.png';
+import { toast } from 'react-toastify';
+
 const schema = z.object({
   password: z.string().min(1, 'A senha é obrigatória').min(8, 'A senha deve ter no mínimo 8 caracteres'),
   confirmPassword: z.string().min(1, 'A confirmação de senha é obrigatória'),
@@ -19,19 +21,20 @@ const RedefinirSenha = () => {
   const email = location.state?.email || '';
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const onSubmit = async ({ password }) => {
     setLoading(true);
-    setError(null);
     try {
       await passwordService.resetPassword(email, password);
-      navigate('/auth/login', { state: { message: 'Senha redefinida com sucesso!' } });
+      toast.success('Senha redefinida com sucesso!');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       if (err.response?.status === 400) {
-        setError('Senha inválida');
+        toast.error('Senha inválida');
       } else {
-        setError('Ocorreu um erro ao redefinir a senha. Tente novamente.');
+        toast.error('Ocorreu um erro ao redefinir a senha. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -50,11 +53,6 @@ const RedefinirSenha = () => {
           Digite sua nova senha para a conta <br />
           <span className="font-medium">{email}</span>
         </p>
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Nova Senha</label>
