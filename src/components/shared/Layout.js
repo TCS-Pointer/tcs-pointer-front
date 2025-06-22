@@ -101,9 +101,10 @@ const Layout = () => {
                 </span>
               </div>
               <div className="text-sm">
-                <p className="font-medium text-gray-900 group-hover:underline">{user?.name || 'Usuário'}</p>
+                <p className="font-medium text-gray-900 hover:underline max-w-[120px] truncate" title={user?.name}>{user?.name || 'Usuário'}</p
+                >
                 <p
-                  className="text-gray-500 max-w-[100px] truncate"
+                  className="text-gray-500 max-w-[120px] truncate hover:underline"
                   title={user?.email}
                 >
                   {user?.email}
