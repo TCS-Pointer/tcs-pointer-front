@@ -15,23 +15,22 @@ const ICONS = {
 const MENU_CONFIG = {
   admin: [
     { to: "/", label: "Dashboard", icon: ICONS.dashboard },
-    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/admin/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/admin/feedbacks", label: "Todos os Feedbacks", icon: ICONS.feedbacks },
+    { to: "/meus-feedbacks", label: "Meu Feedback", icon: ICONS.feedbacks },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
     { to: "/pdi", label: "Todos os PDIs", icon: ICONS.pdi },
     { to: "/admin/users", label: "Usuários", icon: ICONS.users },
     { to: "/admin/relatorios", label: "Relatórios", icon: ICONS.relatorios },
   ],
   gestor: [
-    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
-    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/meus-feedbacks", label: "Meu Feedback", icon: ICONS.feedbacks },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
   ],
   colaborador: [
-    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
-    { to: "/feedbacks", label: "Feedbacks", icon: ICONS.feedbacks },
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },
+    { to: "/meus-feedbacks", label: "Meu Feedback", icon: ICONS.feedbacks },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
   ]
 };
@@ -90,6 +89,7 @@ const Layout = () => {
               {item.label}
             </NavItem>
           ))}
+          
         </nav>
         <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
