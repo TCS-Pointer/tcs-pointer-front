@@ -6,6 +6,22 @@ import pdiService from '../../services/pdiService';
 import { toast } from 'react-toastify';
 import { validarDuracaoMinima } from '../../services/pdiValidationService';
 
+function getUserRoles() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return [];
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''));
+        const payload = JSON.parse(jsonPayload);
+        return payload.realm_access?.roles || [];
+    } catch (e) {
+        return [];
+    }
+}
+
 const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     const [activeTab, setActiveTab] = useState('info');
     const [marcos, setMarcos] = useState(pdi?.marcos || []);
@@ -18,6 +34,9 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
     });
     const [editableMarcos, setEditableMarcos] = useState([]);
     const [fieldErrors, setFieldErrors] = useState({});
+
+    const roles = getUserRoles();
+    const podeEditar = roles.includes('admin') || roles.includes('gestor');
 
     React.useEffect(() => {
         setMarcos(pdi?.marcos || []);
@@ -365,7 +384,9 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
                         </>
                     ) : (
                         <>
-                            <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => setIsEditing(true)}>Editar PDI</button>
+                            {podeEditar && (
+                                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => setIsEditing(true)}>Editar PDI</button>
+                            )}
                             <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={onClose}>Fechar</button>
                         </>
                     )}
