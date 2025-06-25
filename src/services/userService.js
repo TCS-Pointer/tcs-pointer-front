@@ -103,6 +103,16 @@ export const userService = {
     }
   },
 
+  // Buscar usuários para feedback (sem paginação)
+  listarUsuariosFeedback: async (keycloakId) => {
+    try {
+      const response = await api.post('/api/usuarios/listar-usuarios-feedback', { keycloakId });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
 export async function getUsuarioByKeycloakId(keycloakId) {
   const response = await api.get(`/api/usuarios/${keycloakId}`);

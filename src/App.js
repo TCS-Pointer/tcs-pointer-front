@@ -18,6 +18,8 @@ import ToastProvider from './components/ui/ToastProvider';
 import Oops from './components/Oops';
 import './styles/globals.css';
 import ComunicadosManagement from './pages/admin/ComunicadosManagement';
+import FeedbackManagement from './pages/admin/FeedbackManagement';
+import MeuFeedback from './pages/MeuFeedback';
 
 // Componente para proteger rotas
 const ProtectedRoute = ({ children, role }) => {
@@ -66,6 +68,7 @@ function App() {
             <Route path="admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="admin/users" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
             <Route path="admin/comunicados" element={<ProtectedRoute role="admin"><ComunicadosManagement /></ProtectedRoute>} />
+            <Route path="admin/feedbacks" element={<ProtectedRoute role="admin"><FeedbackManagement /></ProtectedRoute>} />
             <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
 
             {/* Rotas de Gestor */}
@@ -73,10 +76,13 @@ function App() {
 
             {/* Rota para páginas não encontradas dentro do layout */}
             <Route path="*" element={<Oops />} />
+            <Route path="/meus-feedbacks" element={<MeuFeedback />} />
           </Route>
 
           {/* Rota padrão - redireciona para login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
+
+          
         </Routes>
       </Router>
     </AuthProvider>
