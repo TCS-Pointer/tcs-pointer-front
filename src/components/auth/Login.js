@@ -5,8 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthNavigation } from '../../hooks/useAuthNavigation';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import pointerIcon from '../../components/ico/image.png';
+import pointerIcon from '../ico/image.png';
 import { toast } from 'react-toastify';
+import TwoFactorAuth from './TwoFactorAuth';
+import api from '../../services/api';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O campo de email é obrigatório').email('Digite um email válido'),
@@ -18,6 +20,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [pending2FA, setPending2FA] = useState(null); // { token, email }
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
   });
@@ -54,14 +57,30 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      await login(data.username, data.password);
+      // Chama o endpoint de login customizado
+      const response = await api.post('/token', {
+        username: data.username,
+        password: data.password
+      });
+      const content = response.data.content;
+      // Se 2FA estiver habilitado, guarda o token em memória
+      if (content.two_factor_enabled) {
+        setPending2FA({ 
+          access_token: content.access_token,
+          refresh_token: content.refresh_token,
+          token_expires: content.token_expires,
+          email: data.username 
+        });
+      } else {
+        // Salva os tokens normalmente
+        localStorage.setItem('access_token', content.access_token);
+        localStorage.setItem('refresh_token', content.refresh_token);
+        localStorage.setItem('token_expires', content.token_expires);
+        await login(data.username, data.password); // mantém navegação e contexto
+      }
     } catch (err) {
       console.error('Erro no login:', err);
-      
-      // Verifica a mensagem do erro que já foi processada pelo serviço
-      const errorMessage = err.message || 'Erro desconhecido';
-      
-      // Tratamento específico para diferentes tipos de erro
+      const errorMessage = err.response?.data?.message || err.message || 'Erro desconhecido';
       if (errorMessage.toLowerCase().includes('credenciais inválidas') || 
           errorMessage.toLowerCase().includes('invalid credentials') ||
           errorMessage.toLowerCase().includes('email ou senha inválidos')) {
@@ -78,7 +97,6 @@ const Login = () => {
                  errorMessage.toLowerCase().includes('500')) {
         toast.error('Erro interno do servidor. Tente novamente mais tarde.');
       } else {
-        // Exibe a mensagem de erro original do servidor
         toast.error(errorMessage);
       }
     }
@@ -91,6 +109,32 @@ const Login = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Callback após sucesso no 2FA
+  const handle2FASuccess = () => {
+    console.log('handle2FASuccess chamado!');
+    console.log('pending2FA:', pending2FA);
+    if (pending2FA?.access_token) {
+      console.log('Salvando tokens no localStorage:', pending2FA);
+      localStorage.setItem('access_token', pending2FA.access_token);
+      localStorage.setItem('refresh_token', pending2FA.refresh_token);
+      localStorage.setItem('token_expires', pending2FA.token_expires);
+      setPending2FA(null);
+      console.log('Tokens salvos, redirecionando para /');
+      window.location.href = '/';
+    } else {
+      console.log('ERRO: pending2FA.access_token não existe!');
+    }
+  };
+
+  const handle2FABack = () => {
+    setPending2FA(null);
+    navigate('/login');
+  };
+
+  if (pending2FA) {
+    return <TwoFactorAuth onSuccess={handle2FASuccess} onBack={handle2FABack} email={pending2FA.email} />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-100">
