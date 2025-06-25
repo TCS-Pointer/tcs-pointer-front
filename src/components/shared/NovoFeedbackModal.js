@@ -51,6 +51,18 @@ function StarRating({ value, onChange }) {
   );
 }
 
+// Função utilitária para truncar nome
+function truncateNome(nome, max = 24) {
+  if (!nome) return '';
+  return nome.length > max ? nome.slice(0, max - 1) + '…' : nome;
+}
+
+// Função utilitária para truncar e-mail
+function truncateEmail(email, max = 28) {
+  if (!email) return '';
+  return email.length > max ? email.slice(0, max - 1) + '…' : email;
+}
+
 export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -247,7 +259,7 @@ export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       type="button"
-                      className={`w-full border rounded px-3 py-2 h-12 flex items-center justify-between bg-white ${!selectedUser ? "text-gray-400" : "text-gray-900"}`}
+                      className={`w-full border rounded px-4 py-2 h-12 flex items-center justify-between bg-white ${!selectedUser ? "text-gray-400" : "text-gray-900"}`}
                       onClick={() => setDropdownOpen((v) => !v)}
                       tabIndex={0}
                       style={{ minHeight: 48 }}
@@ -255,8 +267,8 @@ export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
                     >
                       {selectedUser ? (
                         <span className="flex items-center gap-1 w-full">
-                          <span className="truncate max-w-[140px]">{selectedUser.nome}</span>
-                          <span className="text-gray-500 text-xs truncate max-w-[100px]">- {selectedUser.email}</span>
+                          <span className="max-w-[100px]">{truncateNome(selectedUser.nome)}</span>
+                          <span className="text-gray-500 text-xs max-w-[130px] truncate overflow-ellipsis whitespace-nowrap block">- {truncateEmail(selectedUser.email)}</span>
                         </span>
                       ) : (
                         <span>Escolha um usuário...</span>
@@ -265,8 +277,8 @@ export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
                     </button>
                     {dropdownOpen && (
                       <div
-                        className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto animate-fade-in"
-                        style={{ minWidth: 260 }}
+                        className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto animate-fade-in"
+                        style={{ minWidth: 380, maxWidth: 520 }}
                         ref={listRef}
                         onScroll={handleListScroll}
                       >
@@ -277,24 +289,24 @@ export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
                           <button
                             type="button"
                             key={u.id}
-                            className={`w-full text-left px-4 py-2 flex flex-col items-start justify-center gap-0.5 hover:bg-blue-50 focus:bg-blue-100 transition min-h-[48px] max-h-[48px] ${selectedDestinatario === u.id ? "bg-blue-100" : ""}`}
+                            className={`w-full text-left px-4 py-2 flex flex-col items-start justify-center gap-0.5 hover:bg-blue-50 focus:bg-blue-100 transition min-h-[48px] ${selectedDestinatario === u.id ? "bg-blue-100" : ""}`}
                             onClick={() => handleSelectUser(u.id)}
                             style={{height:48}}
                           >
                             <div
-                              className="font-medium text-gray-900 flex items-center gap-2 w-full truncate"
+                              className="font-medium text-gray-900 flex flex-row items-center gap-2 w-full"
                               title={`${u.nome} - ${u.email}`}
                             >
-                              <span className="truncate max-w-[160px]">{u.nome}</span>
-                              <span className="text-gray-500 text-xs truncate max-w-[120px]">- {u.email}</span>
+                              <span className="max-w-[160px] truncate overflow-ellipsis whitespace-nowrap block">{truncateNome(u.nome)}</span>
+                              <span className="text-gray-500 text-xs max-w-[160px] truncate overflow-ellipsis whitespace-nowrap block">- {truncateEmail(u.email)}</span>
                             </div>
                             <div
-                              className="text-xs text-gray-500 w-full truncate"
+                              className="text-xs text-gray-500 w-full"
                               title={`${u.cargo || ''}${u.cargo && u.setor ? ' - ' : ''}${u.setor || ''}`}
                             >
-                              <span className="truncate max-w-[180px]">{u.cargo}</span>
+                              <span className="max-w-[220px]">{u.cargo}</span>
                               {u.cargo && u.setor ? " - " : ""}
-                              <span className="truncate max-w-[120px]">{u.setor}</span>
+                              <span className="max-w-[180px]">{u.setor}</span>
                             </div>
                           </button>
                         ))}
