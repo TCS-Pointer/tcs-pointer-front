@@ -3,6 +3,8 @@ import { userService } from '../../services/userService';
 import debounce from 'lodash/debounce';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
+import twoFactorAuthService from '../../services/twoFactorAuth.service';
+import { DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 
 export default function UserEditModal({ open, onClose, onSave, user }) {
   const { user: loggedUser } = useAuth();
@@ -19,6 +21,7 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingPasswordReset, setIsSendingPasswordReset] = useState(false);
   const [isLoadingSetores, setIsLoadingSetores] = useState(false);
+  const [isDisabling2FA, setIsDisabling2FA] = useState(false);
 
   useEffect(() => {
     const loadSetoresECargos = async () => {
@@ -139,6 +142,21 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
       toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
     } finally {
       setIsSendingPasswordReset(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!user.keycloakId) return toast.error('ID do usuário não encontrado.');
+    setIsDisabling2FA(true);
+    try {
+      await twoFactorAuthService.disableTwoFactor({ keycloakId: user.keycloakId });
+      toast.success('2FA desabilitado com sucesso!');
+      // Atualiza o user no modal (ideal: recarregar dados do usuário)
+      if (onSave) onSave({ ...user, twoFactorEnabled: false });
+    } catch (e) {
+      toast.error('Erro ao desabilitar 2FA.');
+    } finally {
+      setIsDisabling2FA(false);
     }
   };
 
@@ -279,6 +297,24 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
             </button>
           </div>
         </div>
+        
+        {/* Botão de desabilitar 2FA se estiver ativo */}
+        {user.twoFactorEnabled && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center gap-4">
+            <span className="inline-block bg-blue-200 text-blue-700 rounded-full p-2 font-bold">
+              <DevicePhoneMobileIcon className="w-6 h-6" />
+            </span>
+            <span className="flex-1 text-blue-900">Autenticação em dois fatores está <b>ATIVA</b> para este usuário.</span>
+            <button
+              type="button"
+              onClick={handleDisable2FA}
+              disabled={isDisabling2FA}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors bg-red-600 text-white hover:bg-red-700 ${isDisabling2FA ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isDisabling2FA ? 'Desabilitando...' : 'Desabilitar 2FA'}
+            </button>
+          </div>
+        )}
         
         <div className="flex justify-end gap-2 mt-8">
           <button
