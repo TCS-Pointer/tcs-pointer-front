@@ -17,16 +17,18 @@ const AllPDIs = () => {
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('todos');
     const [selectedStatus, setSelectedStatus] = useState('ATIVO');
+    const [selectedPdiId, setSelectedPdiId] = useState(null);
     const [selectedPdi, setSelectedPdi] = useState(null);
+    const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const fetchPdis = async () => {
         try {
             setLoading(true);
-            const data = await pdiService.getAllPdis();
+            const data = await pdiService.getAllPdisSimples();
             setPdis(data);
 
-            const uniqueDepartments = [...new Set(data.map(pdi => pdi.destinatario?.setor).filter(Boolean))];
+            const uniqueDepartments = [...new Set(data.map(pdi => pdi.setorDestinatario).filter(Boolean))];
             const departmentOptions = uniqueDepartments.map(dept => ({
                 value: dept,
                 label: dept
@@ -59,11 +61,29 @@ const AllPDIs = () => {
         fetchPdis();
     };
 
+    const handleVisualizarPdi = async (pdiId) => {
+        setLoadingDetalhe(true);
+        setSelectedPdiId(pdiId);
+        try {
+            const pdiCompleto = await pdiService.getPdiById(pdiId);
+            setSelectedPdi(pdiCompleto);
+        } catch (err) {
+            setSelectedPdi(null);
+        } finally {
+            setLoadingDetalhe(false);
+        }
+    };
+
+    const handleCloseDetalhes = () => {
+        setSelectedPdi(null);
+        setSelectedPdiId(null);
+    };
+
     const filteredPdis = React.useMemo(() => {
         let filtered = pdis;
 
         if (selectedDepartment !== 'todos') {
-            filtered = filtered.filter(pdi => pdi.destinatario?.setor === selectedDepartment);
+            filtered = filtered.filter(pdi => pdi.setorDestinatario === selectedDepartment);
         }
 
         if (selectedStatus === 'ATIVO') {
@@ -77,8 +97,8 @@ const AllPDIs = () => {
             filtered = filtered.filter(pdi => {
                 const matchesTitle = pdi.titulo.toLowerCase().includes(lowerCaseQuery);
                 const matchesDescription = pdi.descricao.toLowerCase().includes(lowerCaseQuery);
-                const matchesDestinatarioName = pdi.destinatario?.nome?.toLowerCase().includes(lowerCaseQuery);
-                const matchesDestinatarioEmail = pdi.destinatario?.email?.toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioName = pdi.nomeDestinatario?.toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioEmail = pdi.emailDestinatario?.toLowerCase().includes(lowerCaseQuery);
                 return matchesTitle || matchesDescription || matchesDestinatarioName || matchesDestinatarioEmail;
             });
         }
@@ -246,20 +266,18 @@ const AllPDIs = () => {
             {!loading && !error && filteredPdis.length > 0 && (
                 <div className="space-y-6">
                     {filteredPdis.map(pdi => {
-                        const totalMarcos = pdi.marcos ? pdi.marcos.length : 0;
-                        const concluidos = pdi.marcos ? pdi.marcos.filter(m => m.status === 'CONCLUIDO' || m.status === 'Concluído').length : 0;
-                        const progresso = totalMarcos > 0 ? Math.round((concluidos / totalMarcos) * 100) : 0;
+                        const progresso = pdi.totalMarcos > 0 ? Math.round((pdi.marcosConcluidos / pdi.totalMarcos) * 100) : 0;
                         return (
                             <div key={pdi.id} className="bg-white rounded-lg shadow p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center space-x-4">
                                         <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                            {pdi.destinatario?.nome ? pdi.destinatario.nome.charAt(0).toUpperCase() : 'U'}
+                                            {pdi.nomeDestinatario ? pdi.nomeDestinatario.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold">{pdi.destinatario?.nome || 'Usuário não encontrado'}</h3>
+                                            <h3 className="text-lg font-semibold">{pdi.nomeDestinatario || 'Usuário não encontrado'}</h3>
                                             <p className="text-sm text-gray-600">
-                                                {pdi.destinatario?.cargo} • {pdi.destinatario?.setor}
+                                                {pdi.cargoDestinatario} • {pdi.setorDestinatario}
                                             </p>
                                         </div>
                                     </div>
@@ -296,7 +314,7 @@ const AllPDIs = () => {
                                 <div className="text-right">
                                     <button
                                         className="text-blue-600 hover:underline inline-flex items-center justify-end"
-                                        onClick={() => setSelectedPdi(pdi)}
+                                        onClick={() => handleVisualizarPdi(pdi.id)}
                                     >
                                         <Eye className="mr-1 h-4 w-4" /> Visualizar
                                     </button>
@@ -318,10 +336,17 @@ const AllPDIs = () => {
 
             <PdiDetalhesModal
                 isOpen={!!selectedPdi}
-                onClose={() => setSelectedPdi(null)}
+                onClose={handleCloseDetalhes}
                 pdi={selectedPdi}
                 onUpdate={fetchPdis}
             />
+            {loadingDetalhe && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <p className="text-lg font-semibold">Carregando detalhes do PDI...</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
