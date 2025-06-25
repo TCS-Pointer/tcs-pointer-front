@@ -26,8 +26,8 @@ export const userService = {
     const response = await api.get(`/api/usuarios/id/${id}`);
     return response.data.content;
   },
-  getUserByKeycloakId: async (keycloaky) => {
-    const response = await api.get(`/api/usuarios/${keycloaky}`);
+  getUserByKeycloakId: async (keycloakId) => {
+    const response = await api.get(`/api/usuarios/${keycloakId}`);
     return response.data.content;
   },
 

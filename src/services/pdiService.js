@@ -45,6 +45,18 @@ const pdiService = {
             throw error;
         }
     },
+    getAllPdisSimples: async () => {
+        const response = await api.get('/pdi/listagem-simples');
+        return response.data;
+    },
+    getPdiById: async (id) => {
+        const response = await api.get(`/pdi/${id}`);
+        return response.data.content || response.data;
+    },
+    getPdisByDestinatario: async (idUsuario) => {
+        const response = await api.get(`/pdi/destinatario/${idUsuario}`);
+        return response.data.content || response.data;
+    },
 };
 
 export default pdiService; 

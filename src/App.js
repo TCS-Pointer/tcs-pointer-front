@@ -58,7 +58,7 @@ function App() {
             <Route index element={<UserDashboard />} />
             <Route path="feedbacks" element={<UserDashboard />} />
             <Route path="comunicados" element={<UserDashboard />} />
-            <Route path="meu-pdi" element={<UserDashboard />} />
+            <Route path="meu-pdi" element={<AllPDIs />} />
             <Route path="perfil" element={<Perfil />} />
             <Route path="pdi" element={<AllPDIs />} />
 
