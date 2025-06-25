@@ -53,6 +53,10 @@ const pdiService = {
         const response = await api.get(`/pdi/${id}`);
         return response.data.content || response.data;
     },
+    getPdisByDestinatario: async (idUsuario) => {
+        const response = await api.get(`/pdi/destinatario/${idUsuario}`);
+        return response.data.content || response.data;
+    },
 };
 
 export default pdiService; 
