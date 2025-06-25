@@ -7,6 +7,55 @@ import { useAuth } from '../../contexts/AuthContext';
 import { dictionary, formatDate } from '../../utils/Dictionary';
 import { Calendar, FileText, Users, TrendingUp, Search, Eye } from 'lucide-react';
 import PdiDetalhesModal from '../../components/admin/PdiDetalhesModal';
+import { userService } from "../../services/userService";
+
+function getUserRoles() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return [];
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''));
+        const payload = JSON.parse(jsonPayload);
+        return payload.realm_access?.roles || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function getUserIdFromToken() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return null;
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''));
+        const payload = JSON.parse(jsonPayload);
+        return payload.sub;
+    } catch (e) {
+        return null;
+    }
+}
+
+function getUserSetorFromToken() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return null;
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''));
+        const payload = JSON.parse(jsonPayload);
+        return payload.setor || null; // ajuste conforme o campo do seu token
+    } catch (e) {
+        return null;
+    }
+}
 
 const AllPDIs = () => {
     const { user } = useAuth();
@@ -25,10 +74,35 @@ const AllPDIs = () => {
     const fetchPdis = async () => {
         try {
             setLoading(true);
-            const data = await pdiService.getAllPdisSimples();
+            const roles = getUserRoles();
+            let data = [];
+            if (roles.includes('admin')) {
+                data = await pdiService.getAllPdisSimples();
+            } else if (roles.includes('gestor')) {
+                // Buscar setor do gestor
+                let setorGestor = user?.setor;
+                if (!setorGestor) {
+                    // Buscar pelo usuário se não tiver no contexto
+                    const keycloakId = getUserIdFromToken();
+                    const usuario = await userService.getUserByKeycloakId(keycloakId);
+                    setorGestor = usuario.setor;
+                }
+                data = await pdiService.getAllPdisSimples();
+                data = data.filter(pdi => (pdi.setorDestinatario || pdi.destinatario?.setor) === setorGestor);
+            } else if (roles.includes('colaborador')) {
+                let userId = user?.id;
+                if (!userId) {
+                    const keycloakId = getUserIdFromToken();
+                    const usuario = await userService.getUserByKeycloakId(keycloakId);
+                    userId = usuario.id;
+                }
+                const response = await pdiService.getPdisByDestinatario(userId);
+                data = response.content || response;
+            }
             setPdis(data);
-
-            const uniqueDepartments = [...new Set(data.map(pdi => pdi.setorDestinatario).filter(Boolean))];
+            const uniqueDepartments = [...new Set(data.map(
+                pdi => pdi.setorDestinatario || pdi.destinatario?.setor
+            ).filter(Boolean))];
             const departmentOptions = uniqueDepartments.map(dept => ({
                 value: dept,
                 label: dept
@@ -36,7 +110,6 @@ const AllPDIs = () => {
             setDepartments(departmentOptions);
         } catch (err) {
             setError('Erro ao carregar a lista de PDIs.');
-            console.error('Erro ao buscar PDIs:', err);
             setPdis([]);
         } finally {
             setLoading(false);
@@ -83,7 +156,7 @@ const AllPDIs = () => {
         let filtered = pdis;
 
         if (selectedDepartment !== 'todos') {
-            filtered = filtered.filter(pdi => pdi.setorDestinatario === selectedDepartment);
+            filtered = filtered.filter(pdi => (pdi.setorDestinatario || pdi.destinatario?.setor) === selectedDepartment);
         }
 
         if (selectedStatus === 'ATIVO') {
@@ -95,10 +168,10 @@ const AllPDIs = () => {
         if (searchQuery) {
             const lowerCaseQuery = searchQuery.toLowerCase();
             filtered = filtered.filter(pdi => {
-                const matchesTitle = pdi.titulo.toLowerCase().includes(lowerCaseQuery);
-                const matchesDescription = pdi.descricao.toLowerCase().includes(lowerCaseQuery);
-                const matchesDestinatarioName = pdi.nomeDestinatario?.toLowerCase().includes(lowerCaseQuery);
-                const matchesDestinatarioEmail = pdi.emailDestinatario?.toLowerCase().includes(lowerCaseQuery);
+                const matchesTitle = (pdi.titulo || '').toLowerCase().includes(lowerCaseQuery);
+                const matchesDescription = (pdi.descricao || '').toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioName = (pdi.nomeDestinatario || pdi.destinatario?.nome || '').toLowerCase().includes(lowerCaseQuery);
+                const matchesDestinatarioEmail = (pdi.emailDestinatario || pdi.destinatario?.email || '').toLowerCase().includes(lowerCaseQuery);
                 return matchesTitle || matchesDescription || matchesDestinatarioName || matchesDestinatarioEmail;
             });
         }
@@ -266,18 +339,25 @@ const AllPDIs = () => {
             {!loading && !error && filteredPdis.length > 0 && (
                 <div className="space-y-6">
                     {filteredPdis.map(pdi => {
-                        const progresso = pdi.totalMarcos > 0 ? Math.round((pdi.marcosConcluidos / pdi.totalMarcos) * 100) : 0;
+                        const nomeDestinatario = pdi.nomeDestinatario || pdi.destinatario?.nome;
+                        const cargoDestinatario = pdi.cargoDestinatario || pdi.destinatario?.cargo;
+                        const setorDestinatario = pdi.setorDestinatario || pdi.destinatario?.setor;
+                        const totalMarcos = pdi.totalMarcos !== undefined ? pdi.totalMarcos : (pdi.marcos ? pdi.marcos.length : 0);
+                        const marcosConcluidos = pdi.marcosConcluidos !== undefined
+                            ? pdi.marcosConcluidos
+                            : (pdi.marcos ? pdi.marcos.filter(m => m.status === 'CONCLUIDO' || m.status === 'Concluído').length : 0);
+                        const progresso = totalMarcos > 0 ? Math.round((marcosConcluidos / totalMarcos) * 100) : 0;
                         return (
                             <div key={pdi.id} className="bg-white rounded-lg shadow p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center space-x-4">
                                         <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                            {pdi.nomeDestinatario ? pdi.nomeDestinatario.charAt(0).toUpperCase() : 'U'}
+                                            {nomeDestinatario ? nomeDestinatario.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold">{pdi.nomeDestinatario || 'Usuário não encontrado'}</h3>
+                                            <h3 className="text-lg font-semibold">{nomeDestinatario || 'Usuário não encontrado'}</h3>
                                             <p className="text-sm text-gray-600">
-                                                {pdi.cargoDestinatario} • {pdi.setorDestinatario}
+                                                {cargoDestinatario} • {setorDestinatario}
                                             </p>
                                         </div>
                                     </div>
