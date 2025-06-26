@@ -11,10 +11,10 @@ export const useAuthNavigation = () => {
         navigate('/admin');
         break;
       case 'gestor':
-        navigate('/gestor');
+        navigate('/comunicados');
         break;
       case 'colaborador':
-        navigate('/');
+        navigate('/comunicados');
         break;
       default:
         navigate('/login');
