@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Eye } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { comunicadoService } from '../../services/comunicadoService';
+import { toast } from 'react-toastify';
 
 const formatDate = (dateString) => {
   if (!dateString || typeof dateString !== 'string') return 'Data inválida';
@@ -10,48 +14,114 @@ const formatDate = (dateString) => {
   return isNaN(safeDate.getTime()) ? 'Data inválida' : safeDate.toLocaleDateString('pt-BR');
 };
 
-export default function ComunicadoDetalhesModal({ open, onClose, comunicado }) {
+export default function ComunicadoDetalhesModal({ open, onClose, comunicado, onLeituraConfirmada }) {
+  const { user } = useAuth();
+  const [lido, setLido] = useState(comunicado?.lido);
+  const [loading, setLoading] = useState(false);
+
+  // Atualizar estado lido quando comunicado mudar
+  React.useEffect(() => {
+    setLido(comunicado?.lido);
+  }, [comunicado?.lido]);
+
   if (!open || !comunicado) return null;
+
+  const handleConfirmarLeitura = async () => {
+    setLoading(true);
+    try {
+      await comunicadoService.confirmarLeitura(comunicado.id, user?.sub.toString());
+      setLido(true);
+      toast.success('Comunicado marcado como visualizado!');
+      if (onLeituraConfirmada) onLeituraConfirmada();
+      onClose();
+    } catch (error) {
+      toast.error('Erro ao marcar como visualizado. Tente novamente.');
+      console.error('Erro ao confirmar leitura:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Extrair primeira imagem do HTML, se houver
+  const extractFirstImageUrl = (html) => {
+    if (!html || typeof html !== 'string') return null;
+    const match = html.match(/https?:\/\/[^\s"'>]+\.(jpg|jpeg|png|gif|webp)/i);
+    return match ? match[0] : null;
+  };
+  
+  const descricaoHtml = comunicado.descricao || comunicado.mensagem;
+  const imageUrl = extractFirstImageUrl(descricaoHtml);
+  
+  // Remove a URL da imagem do HTML se encontrou uma
+  const descricaoSemImagem = imageUrl 
+    ? descricaoHtml.replace(imageUrl, '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    : descricaoHtml;
+
+  // Cálculo de visualizações
+  const quantidadeLeitores = comunicado.quantidadeLeitores ?? 0;
+  const totalDestinatarios = comunicado.totalDestinatarios ?? 0;
+  const percentual = totalDestinatarios > 0 ? Math.round((quantidadeLeitores / totalDestinatarios) * 100) : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 relative animate-fade-in-down">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-8 relative animate-fade-in-down">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        
-        <h2 className="text-2xl font-bold mb-2 text-gray-900">{comunicado.titulo}</h2>
-        
-        <div className="flex items-center space-x-4 mb-4 text-sm text-gray-500">
-          <span>Publicado em: {formatDate(comunicado.dataPublicacao)}</span>
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <Badge className={comunicado.apenasGestores ? 'bg-orange-100 text-orange-700 border-none hover:bg-orange-100' : 'bg-green-100 text-green-700 border-none hover:bg-green-100'}>
+              {comunicado.apenasGestores ? 'Somente gestores' : 'Comunicado geral'}
+            </Badge>
+          </div>
+          <div className="text-xs text-gray-400 min-w-[80px] text-right">{formatDate(comunicado.dataPublicacao)}</div>
         </div>
-
-        <div className="space-y-4 mb-6">
-            <p className="text-gray-700 whitespace-pre-wrap">{comunicado.descricao}</p>
-        </div>
-
-        <div className="border-t pt-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Detalhes</h3>
-            <div className="flex flex-col space-y-2 text-sm">
-                <div className="flex items-center">
-                    <span className="font-medium w-24">Público:</span>
-                    {comunicado.apenasGestores ? (
-                        <Badge variant="outline">Apenas Gestores</Badge>
-                    ) : (
-                        <Badge variant="outline">Todos</Badge>
-                    )}
-                </div>
-                <div className="flex items-start">
-                    <span className="font-medium w-24 mt-1">Setores:</span>
-                    <div className="flex flex-wrap gap-1">
-                        {comunicado.setores?.length > 0
-                        ? comunicado.setores.map(setor => <Badge key={setor} variant="secondary">{setor}</Badge>)
-                        : <Badge variant="secondary">Todos os setores</Badge>}
-                    </div>
-                </div>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 break-words overflow-wrap-anywhere">{comunicado.titulo}</h2>
+        <div className="mb-6 break-words overflow-wrap-anywhere">
+          {imageUrl && (
+            <div className="flex justify-center mb-4">
+              <img src={imageUrl} alt="Imagem do comunicado" className="max-h-48 max-w-full rounded border" style={{objectFit: 'contain'}} />
             </div>
+          )}
+          {descricaoSemImagem && (
+            <div className="text-gray-700 text-base leading-relaxed break-words overflow-wrap-anywhere" dangerouslySetInnerHTML={{ __html: imageUrl ? descricaoSemImagem : descricaoHtml }} />
+          )}
         </div>
-        
-        <div className="flex justify-end mt-6">
-          <Button type="button" variant="outline" onClick={onClose}>Fechar</Button>
+        <div className="border-t pt-4 flex flex-col gap-2">
+          <div className="flex items-center gap-4">
+            <span className="font-medium">Setores:</span>
+            <div className="flex flex-wrap gap-1">
+              {comunicado.setores?.length > 0
+                ? comunicado.setores.map(setor => <Badge key={setor} variant="secondary">{setor}</Badge>)
+                : <Badge variant="secondary">Todos os setores</Badge>}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-8 gap-2 border-t pt-4">
+          <div className="text-sm text-gray-500 flex items-center gap-2">
+            {user?.role === 'admin' ? (
+              <span>
+                <Eye className="h-4 w-4 inline mr-1" /> Visualizações: {quantidadeLeitores}
+                {totalDestinatarios > 0 && (
+                  <>/{totalDestinatarios} ({percentual}%)</>
+                )}
+              </span>
+            ) : lido ? (
+              <span className="text-green-600 font-medium">Você já visualizou esse comunicado</span>
+            ) : null}
+          </div>
+          <div className="flex gap-2 justify-end">
+            {!lido && (
+              <Button
+                type="button"
+                onClick={handleConfirmarLeitura}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                {loading ? 'Salvando...' : 'Marcar como visualizado'}
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={onClose}>Fechar</Button>
+          </div>
         </div>
       </div>
     </div>

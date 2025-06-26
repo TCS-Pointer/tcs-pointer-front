@@ -20,8 +20,7 @@ const MENU_CONFIG = {
     { to: "/meus-feedbacks", label: "Meu Feedback", icon: ICONS.feedbacks },
     { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
     { to: "/pdi", label: "Todos os PDIs", icon: ICONS.pdi },
-    { to: "/admin/users", label: "Usuários", icon: ICONS.users },
-    { to: "/admin/relatorios", label: "Relatórios", icon: ICONS.relatorios },
+    { to: "/admin/users", label: "Usuários", icon: ICONS.users }
   ],
   gestor: [
     { to: "/comunicados", label: "Comunicados", icon: ICONS.comunicados },

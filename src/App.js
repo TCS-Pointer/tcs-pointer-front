@@ -20,6 +20,7 @@ import './styles/globals.css';
 import ComunicadosManagement from './pages/admin/ComunicadosManagement';
 import FeedbackManagement from './pages/admin/FeedbackManagement';
 import MeuFeedback from './pages/MeuFeedback';
+import Comunicados from './pages/Comunicados';
 
 // Componente para proteger rotas
 const ProtectedRoute = ({ children, role }) => {
@@ -59,7 +60,7 @@ function App() {
             {/* Rotas de Usuário */}
             <Route index element={<UserDashboard />} />
             <Route path="feedbacks" element={<UserDashboard />} />
-            <Route path="comunicados" element={<UserDashboard />} />
+            <Route path="comunicados" element={<Comunicados />} />
             <Route path="meu-pdi" element={<AllPDIs />} />
             <Route path="perfil" element={<Perfil />} />
             <Route path="pdi" element={<AllPDIs />} />
