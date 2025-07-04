@@ -8,28 +8,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const userInfo = authService.decodeToken(token);
-          if (userInfo) {
-            setUser(userInfo);
-          } else {
-            authService.logout();
-            setUser(null);
-          }
+  const initializeAuth = () => {
+    try {
+      if (authService.isAuthenticated()) {
+        const userInfo = authService.decodeToken(authService.getToken());
+        const userRole = authService.getUserRole();
+        
+        console.log('Inicializando autenticação:', { userInfo, userRole }); // Debug
+        
+        if (userInfo && userRole) {
+          setUser({ ...userInfo, role: userRole });
+        } else {
+          console.error('Falha ao inicializar autenticação:', { userInfo, userRole });
+          authService.logout();
+          setUser(null);
         }
-      } catch (err) {
-        console.error('Erro ao inicializar autenticação:', err);
-        authService.logout();
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Erro ao inicializar autenticação:', err);
+      authService.logout();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     initializeAuth();
   }, []);
 
@@ -37,8 +41,16 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const userInfo = await authService.login(username, password);
-      setUser(userInfo);
-      return userInfo;
+      const userRole = authService.getUserRole();
+      
+      console.log('Login realizado:', { userInfo, userRole }); // Debug
+      
+      if (!userRole) {
+        throw new Error('Usuário não possui permissão para acessar o sistema');
+      }
+      
+      setUser({ ...userInfo, role: userRole });
+      return { userInfo, role: userRole };
     } catch (err) {
       setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
       throw err;
@@ -56,7 +68,14 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
+    isAuthenticated: authService.isAuthenticated(),
+    getUserRole: authService.getUserRole,
+    initializeAuth
   };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>

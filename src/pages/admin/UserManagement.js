@@ -5,11 +5,13 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Users, UserPlus, Ban, CheckCircle2, Pencil } from "lucide-react";
 import UserCreateModal from '../../components/admin/UserCreateModal';
 import UserEditModal from '../../components/admin/UserEditModal';
-import CenteredToast from '../../components/ui/CenteredToast';
+import UserFilters from '../../components/admin/UserFilters';
+import { useAuth } from '../../contexts/AuthContext';
+import UserStatsCards from '../../components/admin/UserStatsCards';
+import { toast } from 'react-toastify';
 
 const UserCard = ({ title, value, icon }) => (
   <Card>
@@ -23,65 +25,36 @@ const UserCard = ({ title, value, icon }) => (
   </Card>
 );
 
-const SETORES = [
-  { value: "TI", label: "TI" },
-  { value: "RH", label: "RH" },
-  { value: "FINANCEIRO", label: "Financeiro" },
-  { value: "COMERCIAL", label: "Comercial" },
-  { value: "OPERACIONAL", label: "Operacional" }
-];
-
-const CARGOS = [
-  { value: "DESENVOLVEDOR", label: "Desenvolvedor" },
-  { value: "ANALISTA", label: "Analista" },
-  { value: "GERENTE", label: "Gerente" },
-  { value: "COORDENADOR", label: "Coordenador" },
-  { value: "DIRETOR", label: "Diretor" }
-];
-
-const STATUS = [
-  { value: "ATIVO", label: "Ativo" },
-  { value: "INATIVO", label: "Inativo" }
-];
-
 const UserManagement = () => {
   const navigate = useNavigate();
+  const { user: loggedUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState({
+    tipoUsuario: '',
     setor: '',
-    cargo: '',
     status: ''
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
 
-  // Toast state
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-  const [toastType, setToastType] = useState('success');
-
-  // Função para mostrar o toast
-  const showToast = (msg, type = 'success') => {
-    setToastMsg(msg);
-    setToastType(type);
-    setToastOpen(true);
-  };
-
-  // Função para carregar usuários (reutilizável)
+  // Função para carregar usuários
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await userService.getUsers(page, 10, filters);
+      console.log('Carregando usuários com filtros:', filters);
+      const data = await userService.getUsers(page, filters);
+      console.log('Resposta da API:', data);
+      console.log('Primeiro usuário da lista:', data?.content?.[0]);
       setUsers(data?.content || []);
       setTotalUsers(data?.totalElements || 0);
     } catch (err) {
+      console.error('Erro detalhado ao carregar usuários:', err);
       setError('Erro ao carregar usuários');
-      console.error(err);
       setUsers([]);
       setTotalUsers(0);
     } finally {
@@ -92,18 +65,20 @@ const UserManagement = () => {
   // Carregar usuários
   useEffect(() => {
     loadUsers();
-    // eslint-disable-next-line
   }, [page, filters]);
+
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0);
 
   const handleStatusChange = async (email) => {
     try {
-      await userService.updateUserStatus(email);
-      const data = await userService.getUsers(page, 10, filters);
+      await userService.updateUserStatus(email, loggedUser.email);
+      const data = await userService.getUsers(page, filters);
       setUsers(data?.content || []);
       setTotalUsers(data?.totalElements || 0);
-      showToast('Status do usuário atualizado com sucesso!', 'success');
+      toast.success('Status do usuário atualizado com sucesso!');
+      setStatsRefreshKey(prev => prev + 1);
     } catch (error) {
-      showToast('Erro ao alterar status do usuário', 'error');
+      toast.error('Erro ao alterar status do usuário');
     }
   };
 
@@ -122,191 +97,157 @@ const UserManagement = () => {
     setEditUser(null);
   };
 
-  // Funções de salvar (placeholders)
+  // Funções de salvar
   const handleCreateUserSave = (form) => {
-    showToast('Usuário criado!');
+    toast.success('Usuário criado com sucesso!');
     handleCloseModal();
     loadUsers();
+    setStatsRefreshKey(prev => prev + 1);
   };
   const handleEditUserSave = (form) => {
-    showToast('Usuário atualizado!');
+    toast.success('Usuário atualizado com sucesso!');
     handleCloseModal();
     loadUsers();
+    setStatsRefreshKey(prev => prev + 1);
   };
-  const handleResetPassword = (form) => {
-    // Aqui você chama a API para resetar senha
-    showToast('Senha resetada!');
+
+  const handleFilterChange = (newFilters) => {
+    console.log('UserManagement recebeu novos filtros:', newFilters);
+    setFilters(newFilters);
+    setPage(0); // Reset page when filters change
   };
 
   return (
     <div className="space-y-6">
-      <CenteredToast open={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
-        <Button onClick={handleCreateUser}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
+        <Button onClick={handleCreateUser} className="w-full sm:w-auto">
           <UserPlus className="mr-2 h-4 w-4" />
           Novo Usuário
         </Button>
       </div>
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <UserCard
-          title="Total de Usuários"
-          value={totalUsers}
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
-        />
-      </div>
+      <UserStatsCards refreshKey={statsRefreshKey} />
       {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select
-              value={filters.setor}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, setor: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Setor" />
-              </SelectTrigger>
-              <SelectContent>
-                {SETORES.map(setor => (
-                  <SelectItem key={setor.value} value={setor.value}>
-                    {setor.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.cargo}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, cargo: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Cargo" />
-              </SelectTrigger>
-              <SelectContent>
-                {CARGOS.map(cargo => (
-                  <SelectItem key={cargo.value} value={cargo.value}>
-                    {cargo.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.status}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS.map(status => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <UserFilters onFilterChange={handleFilterChange} />
       {/* Tabela de Usuários */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Usuários</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Setor</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan="7" className="text-center">
-                    Carregando...
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow className="hover:bg-gray-50">
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Setor</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan="7" className="text-center text-red-600">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              ) : !users || users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan="7" className="text-center text-gray-500">
-                    Nenhum usuário encontrado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-sm font-medium text-white">
-                            {user.nome?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
-                          </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium">{user.nome}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.setor}</TableCell>
-                    <TableCell>{user.cargo}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={user.tipoUsuario === 'ADMIN' ? 'bg-black text-white' : user.tipoUsuario === 'GESTOR' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}>
-
-                        {user.tipoUsuario === 'ADMIN' ? 'Administrador' : user.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
-              
-
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={user.status === 'ATIVO' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'}
-                      >
-                        {user.status === 'ATIVO' ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleStatusChange(user.email)}
-                      >
-                        {user.status === 'ATIVO' ? (
-                          <Ban className="h-4 w-4 text-red-600" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan="7" className="text-center">
+                      Carregando...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan="7" className="text-center text-red-600">
+                      {error}
+                    </TableCell>
+                  </TableRow>
+                ) : !users || users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan="7" className="text-center text-gray-500">
+                      Nenhum usuário encontrado
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id} className="hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-medium text-white">
+                              {user.nome?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
+                            </span>
+                          </div>
+                          <div className="ml-4 min-w-0">
+                            <div className="text-sm font-medium truncate" title={user.nome}>
+                              {user.nome}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm truncate" title={user.email}>
+                          {user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm truncate" title={user.setor}>
+                          {user.setor}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm truncate" title={user.cargo}>
+                          {user.cargo}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`${user.tipoUsuario === 'ADMIN' ? 'bg-black text-white' : user.tipoUsuario === 'GESTOR' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                          {user.tipoUsuario === 'ADMIN' ? 'Administrador' : user.tipoUsuario === 'GESTOR' ? 'Gestor' : 'Colaborador'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`${user.status === 'ATIVO' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'} transition-colors duration-200`}
+                        >
+                          {user.status === 'ATIVO' ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          {loggedUser?.email !== user.email && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleStatusChange(user.email)}
+                              className="hover:bg-gray-200 transition-colors duration-200"
+                            >
+                              {user.status === 'ATIVO' ? (
+                                <Ban className="h-4 w-4 text-red-600" />
+                              ) : (
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditUser(user)}
+                            className="hover:bg-gray-200 transition-colors duration-200"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
           {/* Paginação */}
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
               Mostrando {users?.length || 0} de {totalUsers} resultados
             </div>
             <div className="flex space-x-2">
@@ -314,6 +255,7 @@ const UserManagement = () => {
                 variant="outline"
                 onClick={() => setPage(prev => Math.max(0, prev - 1))}
                 disabled={page === 0}
+                className="text-sm px-3 py-2"
               >
                 Anterior
               </Button>
@@ -321,6 +263,7 @@ const UserManagement = () => {
                 variant="outline"
                 onClick={() => setPage(prev => prev + 1)}
                 disabled={!users || users.length < 10}
+                className="text-sm px-3 py-2"
               >
                 Próxima
               </Button>
