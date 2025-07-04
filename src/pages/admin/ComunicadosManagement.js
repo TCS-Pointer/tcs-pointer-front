@@ -63,13 +63,13 @@ const ComunicadosManagement = () => {
   const confirmDelete = async () => {
     if (!comunicadoToDelete) return;
     
-    try {
+      try {
       await comunicadoService.deleteComunicado(comunicadoToDelete.id);
-      toast.success('Comunicado excluído com sucesso!');
+        toast.success('Comunicado excluído com sucesso!');
       loadComunicados(busca, currentPage);
-    } catch (err) {
-      toast.error('Erro ao excluir comunicado.');
-      console.error(err);
+      } catch (err) {
+        toast.error('Erro ao excluir comunicado.');
+        console.error(err);
     } finally {
       setShowDeleteModal(false);
       setComunicadoToDelete(null);
@@ -244,12 +244,12 @@ const ComunicadosManagement = () => {
 
       <div className="flex gap-2 items-center">
         <div className="flex w-full">
-          <input
-            type="text"
-            placeholder="Buscar comunicado por título ou categoria..."
+        <input
+          type="text"
+          placeholder="Buscar comunicado por título ou categoria..."
             className="flex-1 border border-gray-300 rounded-l-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
+          value={busca}
+          onChange={e => setBusca(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && loadComunicados(busca, 0)}
           />
           <button

@@ -5,6 +5,7 @@ import passwordService from '../services/password.service';
 import twoFactorAuthService from '../services/twoFactorAuth.service';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const requisitos = [
   {
@@ -43,6 +44,8 @@ const Perfil = () => {
   const [setup2FA, setSetup2FA] = useState(null); // { qrCodeUrl, secretKey }
   const [code2FA, setCode2FA] = useState('');
   const [msg2FA, setMsg2FA] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -241,21 +244,49 @@ const Perfil = () => {
           <form className="space-y-4 max-w-md" onSubmit={handleChangePassword}>
             <div>
               <label className="block text-sm font-medium mb-1">Nova Senha</label>
-              <input
-                type="password"
-                className="w-full border rounded px-3 py-2"
-                value={novaSenha}
-                onChange={e => setNovaSenha(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full border rounded px-3 py-2 pr-10"
+                  value={novaSenha}
+                  onChange={e => setNovaSenha(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Confirmar Nova Senha</label>
-              <input
-                type="password"
-                className="w-full border rounded px-3 py-2"
-                value={confirmarSenha}
-                onChange={e => setConfirmarSenha(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className="w-full border rounded px-3 py-2 pr-10"
+                  value={confirmarSenha}
+                  onChange={e => setConfirmarSenha(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
             {msg && (
               <div className={`text-sm mb-2 ${msg.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>{msg.text}</div>

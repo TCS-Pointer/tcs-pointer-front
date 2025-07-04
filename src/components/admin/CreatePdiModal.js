@@ -7,6 +7,7 @@ import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
 import { toast } from 'react-toastify';
 import { validarPdiCompleto, validarDuracaoMinima } from '../../services/pdiValidationService';
+import ModerationService from '../../services/moderation.service';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -248,6 +249,18 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         }
         if (!formData.marcos || formData.marcos.length === 0) {
             toast.error('Por favor, adicione pelo menos um marco.');
+            return;
+        }
+        try {
+            toast.info('Validando conteúdo do PDI...', { autoClose: 2000 });
+            const textoModeracao = `Título: ${formData.titulo}\nDescrição: ${formData.descricao}`;
+            const moderationResult = await ModerationService.moderarTexto(textoModeracao);
+            if (moderationResult === 'OFENSIVO') {
+                toast.error('O conteúdo do PDI contém linguagem inadequada. Por favor, revise o texto.');
+                return;
+            }
+        } catch (err) {
+            toast.error('Erro ao validar conteúdo do PDI. Tente novamente.');
             return;
         }
         setLoading(true);
