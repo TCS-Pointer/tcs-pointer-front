@@ -16,6 +16,9 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
     cargo: '',
   });
 
+  // Verifica se o usuário está editando seu próprio perfil
+  const isEditingOwnProfile = loggedUser && user && loggedUser.keycloakId === user.keycloakId;
+
   const [cargosDisponiveis, setCargosDisponiveis] = useState([]);
   const [setoresDisponiveis, setSetoresDisponiveis] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -238,13 +241,19 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
               name="tipoUsuario"
               value={form.tipoUsuario}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className={`border rounded px-3 py-2 ${isEditingOwnProfile ? 'bg-gray-50' : ''}`}
               required
+              disabled={isEditingOwnProfile}
             >
               <option value="COLABORADOR">Colaborador</option>
               <option value="GESTOR">Gestor</option>
               <option value="ADMIN">Administrador</option>
             </select>
+            {isEditingOwnProfile && (
+              <p className="text-xs text-gray-500 mt-1">
+                Você não pode alterar seu próprio tipo de usuário
+              </p>
+            )}
           </div>
           <div className="flex flex-col">
             <label className="text-sm font-medium mb-1">Setor</label>
