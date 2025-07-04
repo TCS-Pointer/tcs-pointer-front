@@ -79,22 +79,22 @@ export default function ComunicadoDetalhesModal({ open, onClose, comunicado, onL
           {imageUrl && (
             <div className="flex justify-center mb-4">
               <img src={imageUrl} alt="Imagem do comunicado" className="max-h-48 max-w-full rounded border" style={{objectFit: 'contain'}} />
-            </div>
+        </div>
           )}
           {descricaoSemImagem && (
             <div className="text-gray-700 text-base leading-relaxed break-words overflow-wrap-anywhere" dangerouslySetInnerHTML={{ __html: imageUrl ? descricaoSemImagem : descricaoHtml }} />
-          )}
-        </div>
+                    )}
+                </div>
         <div className="border-t pt-4 flex flex-col gap-2">
           <div className="flex items-center gap-4">
             <span className="font-medium">Setores:</span>
-            <div className="flex flex-wrap gap-1">
-              {comunicado.setores?.length > 0
-                ? comunicado.setores.map(setor => <Badge key={setor} variant="secondary">{setor}</Badge>)
-                : <Badge variant="secondary">Todos os setores</Badge>}
+                    <div className="flex flex-wrap gap-1">
+                        {comunicado.setores?.length > 0
+                        ? comunicado.setores.map(setor => <Badge key={setor} variant="secondary">{setor}</Badge>)
+                        : <Badge variant="secondary">Todos os setores</Badge>}
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-8 gap-2 border-t pt-4">
           <div className="text-sm text-gray-500 flex items-center gap-2">
             {user?.role === 'admin' ? (
@@ -107,7 +107,7 @@ export default function ComunicadoDetalhesModal({ open, onClose, comunicado, onL
             ) : lido ? (
               <span className="text-green-600 font-medium">Você já visualizou esse comunicado</span>
             ) : null}
-          </div>
+        </div>
           <div className="flex gap-2 justify-end">
             {!lido && (
               <Button
@@ -120,7 +120,7 @@ export default function ComunicadoDetalhesModal({ open, onClose, comunicado, onL
                 {loading ? 'Salvando...' : 'Marcar como visualizado'}
               </Button>
             )}
-            <Button type="button" variant="outline" onClick={onClose}>Fechar</Button>
+          <Button type="button" variant="outline" onClick={onClose}>Fechar</Button>
           </div>
         </div>
       </div>

@@ -134,7 +134,7 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
       if (error.message && error.message.includes('moderação')) {
         toast.error('Erro na moderação do conteúdo. Tente novamente.');
       } else {
-        toast.error(error.response?.data?.message || 'Erro ao salvar comunicado.');
+      toast.error(error.response?.data?.message || 'Erro ao salvar comunicado.');
       }
     } finally {
       setIsModerating(false);

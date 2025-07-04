@@ -32,17 +32,10 @@ const PrimeiroAcesso = () => {
   // Validação em tempo real
   useEffect(() => {
     const newErrors = {};
-
-    // Validação da nova senha
-    if (formData.novaSenha && formData.novaSenha.length < 6) {
-      newErrors.novaSenha = 'A senha deve ter pelo menos 6 caracteres';
-    }
-
     // Validação da confirmação de senha
     if (formData.confirmarSenha && formData.novaSenha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = 'As senhas não coincidem';
     }
-
     setErrors(newErrors);
   }, [formData]);
 
@@ -56,19 +49,14 @@ const PrimeiroAcesso = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.novaSenha) {
       newErrors.novaSenha = 'Nova senha é obrigatória';
-    } else if (formData.novaSenha.length < 6) {
-      newErrors.novaSenha = 'A senha deve ter pelo menos 6 caracteres';
     }
-
     if (!formData.confirmarSenha) {
       newErrors.confirmarSenha = 'Confirmação de senha é obrigatória';
     } else if (formData.novaSenha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = 'As senhas não coincidem';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -108,10 +96,27 @@ const PrimeiroAcesso = () => {
     }
   };
 
-  const isFormValid = formData.novaSenha.length >= 6 && 
-                     formData.novaSenha === formData.confirmarSenha &&
-                     formData.novaSenha && 
-                     formData.confirmarSenha;
+  // Atualizar isFormValid para usar os requisitos visuais
+  const requisitos = [
+    {
+      label: 'Pelo menos 8 caracteres',
+      test: senha => senha.length >= 8,
+    },
+    {
+      label: 'Pelo menos uma letra maiúscula',
+      test: senha => /[A-Z]/.test(senha),
+    },
+    {
+      label: 'Pelo menos um número',
+      test: senha => /\d/.test(senha),
+    },
+    {
+      label: 'Pelo menos um caractere especial',
+      test: senha => /[^A-Za-z0-9]/.test(senha),
+    },
+  ];
+  const senhaValida = requisitos.every(req => req.test(formData.novaSenha));
+  const isFormValid = senhaValida && formData.novaSenha && formData.confirmarSenha && formData.novaSenha === formData.confirmarSenha;
 
   if (success) {
     return (
@@ -150,6 +155,21 @@ const PrimeiroAcesso = () => {
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Bloco de requisitos de senha igual ao Perfil */}
+            <div className="bg-gray-50 p-4 rounded mb-4">
+              <span className="font-medium text-gray-700 block mb-2">Requisitos de senha:</span>
+              <ul className="list-none pl-0 space-y-1 text-sm">
+                {requisitos.map((req, i) => {
+                  const ok = req.test(formData.novaSenha);
+                  return (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className={`font-bold ${ok ? 'text-green-600' : 'text-red-600'}`}>{ok ? '✔' : '✖'}</span>
+                      <span className={ok ? 'text-green-700' : 'text-red-700'}>{req.label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
             {/* Nova Senha */}
             <div className="space-y-2">
               <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700">

@@ -57,12 +57,12 @@ const Comunicados = () => {
       </div>
       <div className="flex gap-2 items-center">
         <div className="flex w-full">
-          <input
-            type="text"
-            placeholder="Buscar comunicado por título ou categoria..."
+        <input
+          type="text"
+          placeholder="Buscar comunicado por título ou categoria..."
             className="flex-1 border border-gray-300 rounded-l-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
+          value={busca}
+          onChange={e => setBusca(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && loadComunicados(busca)}
           />
           <button

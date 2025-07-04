@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-const GEMINI_API_KEY = '';
-
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+console.log('GEMINI_API_KEY:', GEMINI_API_KEY ? 'Configurada' : 'Não configurada');
+console.log('process.env.REACT_APP_GEMINI_API_KEY:', process.env.REACT_APP_GEMINI_API_KEY ? 'Existe' : 'Não existe');
 class ModerationService {
   static getPrompt(textoUsuario) {
     return `
@@ -25,6 +26,8 @@ Texto do usuário:
   }
 
   static async moderarTexto(textoUsuario) {
+    console.log('GEMINI_API_KEY:', GEMINI_API_KEY ? 'Configurada' : 'Não configurada');
+    console.log('process.env.REACT_APP_GEMINI_API_KEY:', process.env.REACT_APP_GEMINI_API_KEY ? 'Existe' : 'Não existe');
     if (!GEMINI_API_KEY) throw new Error('Chave da API do Gemini não configurada (.env)');
     const prompt = this.getPrompt(textoUsuario);
     try {
@@ -57,4 +60,4 @@ Texto do usuário:
   }
 }
 
-export default ModerationService; 
+export default ModerationService;
