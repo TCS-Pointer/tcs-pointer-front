@@ -7,7 +7,6 @@ import { userService } from "../../services/userService";
 import { formatDate } from '../../utils/Dictionary';
 import { toast } from 'react-toastify';
 import { validarPdiCompleto, validarDuracaoMinima } from '../../services/pdiValidationService';
-import ModerationService from '../../services/moderation.service';
 
 const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
@@ -251,18 +250,6 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
             toast.error('Por favor, adicione pelo menos um marco.');
             return;
         }
-        try {
-            toast.info('Validando conteúdo do PDI...', { autoClose: 2000 });
-            const textoModeracao = `Título: ${formData.titulo}\nDescrição: ${formData.descricao}`;
-            const moderationResult = await ModerationService.moderarTexto(textoModeracao);
-            if (moderationResult === 'OFENSIVO') {
-                toast.error('O conteúdo do PDI contém linguagem inadequada. Por favor, revise o texto.');
-                return;
-            }
-        } catch (err) {
-            toast.error('Erro ao validar conteúdo do PDI. Tente novamente.');
-            return;
-        }
         setLoading(true);
         setError(null);
         try {
@@ -364,6 +351,13 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                                     ))}
                                 </select>
                                 {fieldErrors.colaboradorId && <div className="text-red-500 text-xs mt-1">{fieldErrors.colaboradorId}</div>}
+                                
+                                {/* Mostrar quantidade de colaboradores disponíveis */}
+                                {colaboradoresList.length > 0 && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {colaboradoresList.length} colaborador{colaboradoresList.length !== 1 ? 'es' : ''} disponível{colaboradoresList.length !== 1 ? 'is' : ''}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

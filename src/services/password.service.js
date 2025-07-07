@@ -4,22 +4,22 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8082/api/usua
 
 const passwordService = {
   forgotPassword: async (email) => {
-    const response = await axios.post(`${API_URL}/esqueceu-senha`, { email });
+    const response = await axios.post(`${API_URL}/api/usuarios/esqueceu-senha`, { email });
     return response.data;
   },
 
   verifyCode: async (email, codigo) => {
-    const response = await axios.post(`${API_URL}/verificar-codigo`, { email, codigo });
+    const response = await axios.post(`${API_URL}/api/usuarios/verificar-codigo`, { email, codigo });
     return response.data;
   },
 
   resetPassword: async (email, senha) => {
-    const response = await axios.post(`${API_URL}/redefinir-senha`, { email, senha });
+    const response = await axios.post(`${API_URL}/api/usuarios/redefinir-senha`, { email, senha });
     return response.data;
   },
 
   primeiroAcesso: async (token, novaSenha) => {
-    const response = await axios.post(`${API_URL}/primeiro-acesso`, { token, novaSenha });
+    const response = await axios.post(`${API_URL}/api/usuarios/primeiro-acesso`, { token, novaSenha });
     return response.data;
   }
 };
