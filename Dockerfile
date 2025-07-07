@@ -3,44 +3,40 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copiar arquivo de exemplo e criar .env se não existir
-COPY env.example ./
-RUN if [ ! -f .env ]; then cp env.example .env; fi
-
-# Copiar arquivos de dependências
+# Copia arquivos de dependência primeiro (melhor cache)
 COPY package*.json ./
 
-# Instalar dependências
+# Instala dependências com cache
 RUN npm install --legacy-peer-deps
 
-# Copiar código fonte
+# Copia o restante do código
 COPY . .
 
-# Build da aplicação (as variáveis do .env estarão disponíveis)
+# Build da aplicação
 RUN npm run build
 
-# Run stage
+# Stage final com nginx
 FROM nginx:alpine
 
-# Instalar dependências de segurança
+# Instala curl (para o healthcheck)
 RUN apk add --no-cache curl
 
-# Copiar arquivos buildados
+# Copia build para o nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copiar configuração do nginx otimizada para AWS
+# Copia config nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Definir permissões corretas
+# Permissões
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# Expor porta 80
+# Expor porta
 EXPOSE 80
 
-# Health check
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+  CMD curl -f http://localhost/ || exit 1
 
-# Comando para iniciar o nginx
-CMD ["nginx", "-g", "daemon off;"] 
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
