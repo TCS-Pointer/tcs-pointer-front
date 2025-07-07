@@ -14,12 +14,10 @@ const ICONS = {
 
 const MENU_CONFIG = {
   admin: [
-    { to: "/", label: "Dashboard", icon: ICONS.dashboard },
     { to: "/admin/comunicados", label: "Comunicados", icon: ICONS.comunicados },
     { to: "/admin/feedbacks", label: "Todos os Feedbacks", icon: ICONS.feedbacks },
     { to: "/meus-feedbacks", label: "Meu Feedback", icon: ICONS.feedbacks },
-    { to: "/meu-pdi", label: "Meu PDI", icon: ICONS.pdi },
-    { to: "/pdi", label: "Todos os PDIs", icon: ICONS.pdi },
+    { to: "/meu-pdi", label: "PDI", icon: ICONS.pdi },
     { to: "/admin/users", label: "Usuários", icon: ICONS.users }
   ],
   gestor: [
