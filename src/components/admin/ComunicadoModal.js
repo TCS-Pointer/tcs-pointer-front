@@ -63,20 +63,22 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
     }));
   };
 
-  // Seleção múltipla de setores
-  const handleSetorChange = (setor) => {
-    setForm((prev) => {
-      let newSetores;
-      if (setor === 'Todos') {
-        // Se clicar em 'Todos', seleciona todos ou limpa todos
-        newSetores = prev.setores.length === setoresDisponiveis.length ? [] : [...setoresDisponiveis];
-      } else {
-        newSetores = prev.setores.includes(setor)
-          ? prev.setores.filter((s) => s !== setor)
-          : [...prev.setores, setor];
-      }
-      return { ...prev, setores: newSetores };
-    });
+  // Adicionar a opção 'Todos' manualmente
+  const setoresOptions = ['Todos', ...setoresDisponiveis.filter(s => s !== 'Todos')];
+
+  // Seleção múltipla de setores com lógica para 'Todos'
+  const handleSetoresSelect = (opts) => {
+    if (!opts) {
+      setForm(prev => ({ ...prev, setores: [] }));
+      return;
+    }
+    const values = opts.map(o => o.value);
+    // Se selecionar 'Todos', marca todos os setores reais
+    if (values.includes('Todos')) {
+      setForm(prev => ({ ...prev, setores: setoresDisponiveis }));
+    } else {
+      setForm(prev => ({ ...prev, setores: values }));
+    }
   };
 
   // Contador de caracteres do HTML completo
@@ -94,6 +96,8 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Sempre enviar apenas setores reais (sem 'Todos')
+    let setoresParaEnviar = form.setores.filter(s => s !== 'Todos');
     if (!validate()) {
       toast.error('Por favor, preencha os campos obrigatórios.');
       return;
@@ -121,10 +125,10 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
       setIsLoading(true);
       
       if (isEditing) {
-        await comunicadoService.updateComunicado(comunicado.id, form);
+        await comunicadoService.updateComunicado(comunicado.id, { ...form, setores: setoresParaEnviar });
         toast.success('Comunicado atualizado com sucesso!');
       } else {
-        await comunicadoService.createComunicado(form);
+        await comunicadoService.createComunicado({ ...form, setores: setoresParaEnviar });
         toast.success('Comunicado criado com sucesso!');
       }
       onSave();
@@ -203,9 +207,9 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
               <div className="w-full max-w-[300px] h-10">
                 <Select
                   isMulti
-                  options={setoresDisponiveis.map(s => ({ value: s, label: s }))}
+                  options={setoresOptions.map(s => ({ value: s, label: s }))}
                   value={form.setores.map(s => ({ value: s, label: s }))}
-                  onChange={opts => setForm(prev => ({ ...prev, setores: opts.map(o => o.value) }))}
+                  onChange={handleSetoresSelect}
                   placeholder="Selecione os setores..."
                   classNamePrefix="react-select"
                   noOptionsMessage={() => "Nenhum setor encontrado"}
