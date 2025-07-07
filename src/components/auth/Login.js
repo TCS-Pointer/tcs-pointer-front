@@ -30,10 +30,10 @@ const Login = () => {
       const role = user.role;
       switch (role) {
         case 'admin':
-          navigate('/admin');
+          navigate('/admin/comunicados');
           break;
         case 'gestor':
-          navigate('/gestor');
+          navigate('/');
           break;
         case 'colaborador':
           navigate('/');

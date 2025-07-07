@@ -58,7 +58,7 @@ function App() {
           {/* Rotas protegidas dentro do Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             {/* Rotas de Usuário */}
-            <Route index element={<UserDashboard />} />
+            <Route index element={<Comunicados />} />
             <Route path="feedbacks" element={<UserDashboard />} />
             <Route path="comunicados" element={<Comunicados />} />
             <Route path="meu-pdi" element={<AllPDIs />} />
@@ -66,14 +66,14 @@ function App() {
             <Route path="pdi" element={<AllPDIs />} />
 
             {/* Rotas de Admin */}
-            <Route path="admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin" element={<Navigate to="/admin/comunicados" replace />} />
             <Route path="admin/users" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
             <Route path="admin/comunicados" element={<ProtectedRoute role="admin"><ComunicadosManagement /></ProtectedRoute>} />
             <Route path="admin/feedbacks" element={<ProtectedRoute role="admin"><FeedbackManagement /></ProtectedRoute>} />
             <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
 
             {/* Rotas de Gestor */}
-            <Route path="gestor" element={<ProtectedRoute role="gestor"><GestorDashboard /></ProtectedRoute>} />
+            <Route path="gestor" element={<Navigate to="/comunicados" replace />} />
 
             {/* Rota para páginas não encontradas dentro do layout */}
             <Route path="*" element={<Oops />} />
