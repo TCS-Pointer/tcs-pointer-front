@@ -4,7 +4,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import FeedbackService from "../../services/FeedbackService";
 import { userService } from "../../services/userService";
 import { toast } from "react-toastify";
-import ModerationService from "../../services/moderation.service";
 
 const competencias = [
   {
@@ -182,28 +181,8 @@ export default function NovoFeedbackModal({ open, onClose, onSubmit }) {
     e.preventDefault();
     if (!isStep2Valid || !selectedDestinatario) return;
     setSending(true);
-    // Montar string única para moderação
-    const textoModeracao =
-      `Assunto: ${form.assunto}\n` +
-      `Pontos Fortes: ${form.pontosFortes}\n` +
-      `Pontos de Melhoria: ${form.pontosMelhoria}\n` +
-      `Ações Recomendadas: ${form.acoesRecomendadas}`;
+    
     try {
-      let resultado;
-      try {
-        resultado = await ModerationService.moderarTexto(textoModeracao);
-      } catch (err) {
-        toast.error("Erro ao consultar moderação de conteúdo (Google Gemini). Tente novamente.\n" + (err?.message || err));
-        console.log('Erro/resposta Gemini:', err);
-        setSending(false);
-        return;
-      }
-      if (resultado === 'OFENSIVO') {
-        toast.error("O texto do feedback contém conteúdo ofensivo ou inapropriado.");
-        setSending(false);
-        return;
-      }
-      // Se passou na moderação, envia normalmente
       const payload = {
         ...form,
         idUsuarioDestinatario: Number(selectedDestinatario),

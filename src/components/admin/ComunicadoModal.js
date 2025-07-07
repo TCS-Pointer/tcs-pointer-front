@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { comunicadoService } from '../../services/comunicadoService';
 import { userService } from '../../services/userService';
-import ModerationService from "../../services/moderation.service";
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { toast } from 'react-toastify';
@@ -96,52 +95,25 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Sempre enviar apenas setores reais (sem 'Todos')
-    let setoresParaEnviar = form.setores.filter(s => s !== 'Todos');
     if (!validate()) {
       toast.error('Por favor, preencha os campos obrigatórios.');
       return;
     }
-    
-    setIsModerating(true);
+    setIsLoading(true);
     try {
-      // Aplicar moderação de texto
-      const textoModeracao = 
-        `Título: ${form.titulo}\n` +
-        `Descrição: ${form.descricao}`;
-      
-      console.log('Iniciando moderação...', textoModeracao);
-      toast.info('Validando conteúdo...', { autoClose: 2000 });
-      
-      const moderationResult = await ModerationService.moderarTexto(textoModeracao);
-      console.log('Resultado da moderação:', moderationResult);
-      
-      if (moderationResult === 'OFENSIVO') {
-        toast.error('O conteúdo do comunicado contém linguagem inadequada. Por favor, revise o texto.');
-        return;
-      }
-
-      setIsModerating(false);
-      setIsLoading(true);
-      
       if (isEditing) {
-        await comunicadoService.updateComunicado(comunicado.id, { ...form, setores: setoresParaEnviar });
+        await comunicadoService.updateComunicado(comunicado.id, form);
         toast.success('Comunicado atualizado com sucesso!');
       } else {
-        await comunicadoService.createComunicado({ ...form, setores: setoresParaEnviar });
+        await comunicadoService.createComunicado(form);
         toast.success('Comunicado criado com sucesso!');
       }
       onSave();
       onClose();
     } catch (error) {
       console.error('Erro completo:', error);
-      if (error.message && error.message.includes('moderação')) {
-        toast.error('Erro na moderação do conteúdo. Tente novamente.');
-      } else {
       toast.error(error.response?.data?.message || 'Erro ao salvar comunicado.');
-      }
     } finally {
-      setIsModerating(false);
       setIsLoading(false);
     }
   };
