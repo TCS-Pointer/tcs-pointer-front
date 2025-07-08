@@ -13,9 +13,6 @@ const MeuPDIsOverview = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">Meus PDIs</h1>
                 <div className="flex space-x-4">
-                    <Button variant="outline">
-                        <FileText className="mr-2 h-4 w-4" /> Informações Detalhadas
-                    </Button>
                     <Button>
                         <span className="text-xl mr-1 mb-0.5">+</span> Novo PDI
                     </Button>

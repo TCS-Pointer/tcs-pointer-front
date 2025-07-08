@@ -19,6 +19,7 @@ import Oops from './components/Oops';
 import './styles/globals.css';
 import ComunicadosManagement from './pages/admin/ComunicadosManagement';
 import FeedbackManagement from './pages/admin/FeedbackManagement';
+import Relatorios from './pages/admin/Relatorios';
 import MeuFeedback from './pages/MeuFeedback';
 import Comunicados from './pages/Comunicados';
 
@@ -64,26 +65,24 @@ function App() {
             <Route path="meu-pdi" element={<AllPDIs />} />
             <Route path="perfil" element={<Perfil />} />
             <Route path="pdi" element={<AllPDIs />} />
+            <Route path="meus-feedbacks" element={<MeuFeedback />} />
 
             {/* Rotas de Admin */}
             <Route path="admin" element={<Navigate to="/admin/comunicados" replace />} />
             <Route path="admin/users" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
             <Route path="admin/comunicados" element={<ProtectedRoute role="admin"><ComunicadosManagement /></ProtectedRoute>} />
             <Route path="admin/feedbacks" element={<ProtectedRoute role="admin"><FeedbackManagement /></ProtectedRoute>} />
-            <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin/relatorios" element={<ProtectedRoute role="admin"><Relatorios /></ProtectedRoute>} />
 
             {/* Rotas de Gestor */}
             <Route path="gestor" element={<Navigate to="/comunicados" replace />} />
 
             {/* Rota para páginas não encontradas dentro do layout */}
             <Route path="*" element={<Oops />} />
-            <Route path="/meus-feedbacks" element={<MeuFeedback />} />
           </Route>
 
           {/* Rota padrão - redireciona para login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
-
-          
         </Routes>
       </Router>
     </AuthProvider>
