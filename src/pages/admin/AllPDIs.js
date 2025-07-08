@@ -255,7 +255,7 @@ const AllPDIs = () => {
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Filtros</h2>
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="flex-1 w-full md:w-auto">
-                        <label htmlFor="departamento" className="block text-sm font-medium text-gray-700">Departamento</label>
+                        <label htmlFor="departamento" className="block text-sm font-medium text-gray-700">Setor</label>
                         <select
                             id="departamento"
                             value={selectedDepartment}

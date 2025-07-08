@@ -36,7 +36,6 @@ export default function ComunicadoDetalhesModal({ open, onClose, comunicado, onL
       onClose();
     } catch (error) {
       toast.error('Erro ao marcar como visualizado. Tente novamente.');
-      console.error('Erro ao confirmar leitura:', error);
     } finally {
       setLoading(false);
     }

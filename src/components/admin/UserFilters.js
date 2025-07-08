@@ -21,18 +21,13 @@ const UserFilters = ({ onFilterChange }) => {
 
   const loadFilterOptions = async () => {
     try {
-      console.log('Iniciando carregamento dos filtros...');
       const [setoresResponse, tiposResponse] = await Promise.all([
         userService.getSetores(),
         userService.getTiposUsuario()
       ]);
       
-      console.log('Resposta completa dos setores:', JSON.stringify(setoresResponse, null, 2));
-      console.log('Resposta completa dos tipos:', JSON.stringify(tiposResponse, null, 2));
-      
       // Verificar se a resposta tem a estrutura esperada
       if (!setoresResponse || !Array.isArray(setoresResponse)) {
-        console.error('Resposta dos setores inválida:', setoresResponse);
         setSetores([]);
       } else {
         setSetores(setoresResponse);
@@ -40,31 +35,23 @@ const UserFilters = ({ onFilterChange }) => {
       
       // Verificar se a resposta tem a estrutura esperada
       if (!tiposResponse?.stats || !Array.isArray(tiposResponse.stats)) {
-        console.error('Resposta dos tipos inválida:', tiposResponse);
         setTiposUsuario([]);
       } else {
         const tipos = tiposResponse.stats.map(item => item.tipoUsuario);
-        console.log('Tipos processados:', tipos);
         setTiposUsuario(tipos);
       }
       
-      console.log('Setores após setState:', setoresResponse);
-      console.log('Tipos após setState:', tiposResponse?.stats?.map(item => item.tipoUsuario) || []);
     } catch (err) {
-      console.error('Erro detalhado ao carregar opções dos filtros:', err);
       toast.error('Erro ao carregar opções dos filtros');
     }
   };
 
   useEffect(() => {
-    console.log('Componente UserFilters montado');
     loadFilterOptions();
   }, []);
 
   const handleFilterChange = (field, value) => {
-    console.log('Filtro alterado:', field, value);
     const newFilters = { ...filters, [field]: value };
-    console.log('Novos filtros:', newFilters);
     setFilters(newFilters);
     onFilterChange(newFilters);
   };

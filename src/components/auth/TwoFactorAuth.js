@@ -34,7 +34,7 @@ export default function TwoFactorAuth({ onSuccess, onBack, email }) {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Autenticação em 2 Fatores</h2>
-        <p className="mb-4 text-center text-gray-600">Digite o código do Google Authenticator enviado para seu e-mail</p>
+        <p className="mb-4 text-center text-gray-600">Digite o código do seu aplicativo de autenticação</p>
         <input
           type="text"
           className="w-full border rounded px-3 py-2 mb-4"

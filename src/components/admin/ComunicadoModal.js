@@ -111,7 +111,6 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
       onSave();
       onClose();
     } catch (error) {
-      console.error('Erro completo:', error);
       toast.error(error.response?.data?.message || 'Erro ao salvar comunicado.');
     } finally {
       setIsLoading(false);

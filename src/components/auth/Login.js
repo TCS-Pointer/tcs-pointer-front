@@ -79,7 +79,6 @@ const Login = () => {
         await login(data.username, data.password); // mantém navegação e contexto
       }
     } catch (err) {
-      console.error('Erro no login:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Erro desconhecido';
       if (errorMessage.toLowerCase().includes('credenciais inválidas') || 
           errorMessage.toLowerCase().includes('invalid credentials') ||
@@ -112,18 +111,13 @@ const Login = () => {
 
   // Callback após sucesso no 2FA
   const handle2FASuccess = () => {
-    console.log('handle2FASuccess chamado!');
-    console.log('pending2FA:', pending2FA);
     if (pending2FA?.access_token) {
-      console.log('Salvando tokens no localStorage:', pending2FA);
       localStorage.setItem('access_token', pending2FA.access_token);
       localStorage.setItem('refresh_token', pending2FA.refresh_token);
       localStorage.setItem('token_expires', pending2FA.token_expires);
       setPending2FA(null);
-      console.log('Tokens salvos, redirecionando para /');
       window.location.href = '/';
     } else {
-      console.log('ERRO: pending2FA.access_token não existe!');
     }
   };
 

@@ -14,18 +14,14 @@ export const AuthProvider = ({ children }) => {
         const userInfo = authService.decodeToken(authService.getToken());
         const userRole = authService.getUserRole();
         
-        console.log('Inicializando autenticação:', { userInfo, userRole }); // Debug
-        
         if (userInfo && userRole) {
           setUser({ ...userInfo, role: userRole });
         } else {
-          console.error('Falha ao inicializar autenticação:', { userInfo, userRole });
           authService.logout();
           setUser(null);
         }
       }
     } catch (err) {
-      console.error('Erro ao inicializar autenticação:', err);
       authService.logout();
       setUser(null);
     } finally {
@@ -42,8 +38,6 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       const userInfo = await authService.login(username, password);
       const userRole = authService.getUserRole();
-      
-      console.log('Login realizado:', { userInfo, userRole }); // Debug
       
       if (!userRole) {
         throw new Error('Usuário não possui permissão para acessar o sistema');

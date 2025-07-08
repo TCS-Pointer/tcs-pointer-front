@@ -53,11 +53,10 @@ const FeedbackManagement = () => {
         const feedbackList = data.content || [];
         setFeedbacks(feedbackList);
       setTotalPages(data.totalPages || 0);
-      } catch (error) {
-      console.error('Erro ao buscar feedbacks:', error);
-        setFeedbacks([]);
+          } catch (error) {
+      setFeedbacks([]);
       setTotalPages(0);
-      } finally {
+    } finally {
         setLoading(false);
       }
     };

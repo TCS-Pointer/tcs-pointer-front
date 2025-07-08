@@ -40,7 +40,6 @@ export default function ComunicadoCard({ comunicado, onView, onDelete, isAdmin, 
       if (onLeituraConfirmada) onLeituraConfirmada();
     } catch (error) {
       toast.error('Erro ao marcar como lido. Tente novamente.');
-      console.error('Erro ao confirmar leitura:', error);
     } finally {
       setLoading(false);
     }

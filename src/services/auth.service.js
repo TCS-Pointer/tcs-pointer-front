@@ -32,35 +32,28 @@ class AuthService {
 
   async login(username, password) {
     try {
-      console.log('Tentando login com:', { username, API_URL: this.api.defaults.baseURL });
       
       const response = await this.api.post('/token', {
         username,
         password
       });
 
-      console.log('Resposta do servidor:', response.data);
-
       const { access_token, refresh_token, expires_in } = response.data.content;
       
       if (!access_token) {
-        console.error('Token não recebido na resposta:', response.data);
         throw new Error('Token não recebido do servidor');
       }
       
       this.setTokens(access_token, refresh_token, expires_in);
       
       const userInfo = this.decodeToken(access_token);
-      console.log('Token decodificado:', userInfo); // Debug
 
       if (!this.validateUserRoles(userInfo)) {
-        console.error('Roles inválidas para o usuário:', userInfo);
         throw new Error('Usuário não possui permissão para acessar o sistema');
       }
 
       return userInfo;
     } catch (error) {
-      console.error('Erro detalhado no login:', error);
       throw this.handleError(error);
     }
   }
@@ -81,24 +74,20 @@ class AuthService {
 
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error('Erro ao decodificar token:', error);
       return null;
     }
   }
 
   validateUserRoles(userInfo) {
     if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
-      console.error('Token não contém roles:', userInfo);
       return false;
     }
 
     const validRoles = ['admin', 'colaborador', 'gestor'];
     const userRoles = userInfo.realm_access.roles;
-    console.log('Roles do usuário:', userRoles); // Debug
 
     const hasValidRole = userRoles.some(role => validRoles.includes(role));
     if (!hasValidRole) {
-      console.error('Usuário não possui roles válidas:', userRoles);
     }
     return hasValidRole;
   }
@@ -106,34 +95,27 @@ class AuthService {
   getUserRole() {
     const token = this.getToken();
     if (!token) {
-      console.log('Nenhum token encontrado');
       return null;
     }
 
     const userInfo = this.decodeToken(token);
     if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
-      console.error('Token inválido ou sem roles:', userInfo);
       return null;
     }
 
     const roles = userInfo.realm_access.roles;
-    console.log('Roles disponíveis:', roles); // Debug
 
     // Prioridade de roles: admin > gestor > colaborador
     if (roles.includes('admin')) {
-      console.log('Role selecionada: admin');
       return 'admin';
     }
     if (roles.includes('gestor')) {
-      console.log('Role selecionada: gestor');
       return 'gestor';
     }
     if (roles.includes('colaborador')) {
-      console.log('Role selecionada: colaborador');
       return 'colaborador';
     }
     
-    console.error('Nenhuma role válida encontrada');
     return null;
   }
 
@@ -161,19 +143,16 @@ class AuthService {
     try {
       const userInfo = this.decodeToken(token);
       if (!userInfo || !userInfo.realm_access || !userInfo.realm_access.roles) {
-        console.error('Token inválido ou sem roles:', userInfo);
         return false;
       }
 
       if (this.isTokenExpired()) {
-        console.log('Token expirado');
         this.logout();
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Erro ao validar token:', error);
       this.logout();
       return false;
     }

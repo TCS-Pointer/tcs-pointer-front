@@ -36,19 +36,15 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     const [idUsuario, setIdUsuario] = useState(null);
 
     useEffect(() => {
-        console.log('DEBUG isOpen:', isOpen, 'user:', user);
         if (isOpen && user?.sub) {
-            console.log('Modal is open, fetching users for user:', user.sub);
             const fetchUsers = async () => {
                 setUsersLoading(true);
                 setUsersError(null);
                 try {
                     const users = await pdiService.getUsersByDepartment(user.sub);
-                    console.log('Users fetched for user:', users);
                     setAllUsers(users);
                 } catch (err) {
                     setUsersError('Erro ao carregar a lista de usuários.');
-                    console.error('Erro ao buscar usuários:', err);
                 } finally {
                     setUsersLoading(false);
                 }
@@ -57,10 +53,8 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
         }
     }, [isOpen, user?.sub]);
     useEffect(() => {
-        console.log('allUsers state updated:', allUsers);
         if (allUsers.length > 0) {
             const cols = allUsers.filter(user => user.tipoUsuario === 'COLABORADOR');
-            console.log('Filtered colaboradoresList:', cols);
             setColaboradoresList(cols);
         } else {
             setColaboradoresList([]);
@@ -77,7 +71,6 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                     setIdUsuario(response.id);
                 } catch (e) {
                     setIdUsuario(null);
-                    console.error('Erro ao buscar usuário pelo keycloakId:', e);
                 }
             }
         }
@@ -268,16 +261,13 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
                     status: marco.status || 'PENDENTE'
                 }))
             };
-            console.log('Enviando PDI:', pdiData);
             const newPdi = await pdiService.createPdi(pdiData);
-            console.log('PDI criado com sucesso:', newPdi);
             toast.success('PDI criado com sucesso!');
             await new Promise(resolve => setTimeout(resolve, 1500));
             onSuccess(newPdi);
             handleClose();
         } catch (err) {
             toast.error('Erro ao criar o PDI. Verifique os dados e tente novamente.');
-            console.error('Erro na criação do PDI:', err);
         } finally {
             setLoading(false);
         }
@@ -302,8 +292,6 @@ const CreatePdiModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     if (!isOpen) return null;
-
-    console.log('Final rendering - colaboradoresList:', colaboradoresList);
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">

@@ -27,7 +27,6 @@ export const formatDate = (dateString) => {
       year: 'numeric'
     });
   } catch (error) {
-    console.error('Erro ao formatar data:', error);
     return dateString;
   }
 };
