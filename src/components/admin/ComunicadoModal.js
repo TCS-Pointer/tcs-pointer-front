@@ -150,11 +150,17 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl min-w-[400px] p-8 relative animate-fade-in-down">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        <h2 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Comunicado' : 'Novo Comunicado'}</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl min-w-[400px] max-h-[90vh] flex flex-col animate-fade-in-down">
+        {/* Header fixo */}
+        <div className="p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          <h2 className="text-2xl font-bold pr-8">{isEditing ? 'Editar Comunicado' : 'Novo Comunicado'}</h2>
+        </div>
+
+        {/* Conteúdo com scroll */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             <div className="md:col-span-4 col-span-1">
               <label className="block text-sm font-medium mb-1">Título <span className="text-red-500">*</span></label>
@@ -241,6 +247,12 @@ export default function ComunicadoModal({ open, onClose, onSave, comunicado }) {
             </Button>
           </div>
         </form>
+        </div>
+
+        {/* Footer fixo */}
+        <div className="p-6 pt-4 border-t border-gray-200 flex-shrink-0">
+          {/* Espaço para futuras ações se necessário */}
+        </div>
       </div>
     </div>
   );
