@@ -214,7 +214,7 @@ const Perfil = () => {
               <span className="text-gray-600">{userData?.email}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-700">Departamento</span>
+              <span className="font-medium text-gray-700">Setor</span>
               <span className="text-gray-600">{userData?.setor || '-'}</span>
             </div>
             <div className="flex items-center gap-2">

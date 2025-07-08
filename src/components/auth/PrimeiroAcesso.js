@@ -79,7 +79,6 @@ const PrimeiroAcesso = () => {
       }, 2000);
       
     } catch (error) {
-      console.error('Erro no primeiro acesso:', error);
       let errorMessage = 'Erro ao definir nova senha';
       
       if (error.response?.status === 400) {

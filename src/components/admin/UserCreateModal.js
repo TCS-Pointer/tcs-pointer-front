@@ -32,7 +32,6 @@ export default function UserCreateModal({ open, onClose, onSave }) {
         const data = await userService.getSetoresECargos();
         setSetoresDisponiveis(data.setores || []);
       } catch (error) {
-        console.error('Erro ao carregar setores e cargos:', error);
         toast.error('Erro ao carregar setores e cargos. Tente novamente.');
       } finally {
         setIsLoadingSetores(false);

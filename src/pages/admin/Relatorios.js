@@ -76,7 +76,6 @@ const Relatorios = () => {
           break;
       }
     } catch (error) {
-      console.error(`Erro ao baixar relatório de ${type}:`, error);
       // Aqui você pode adicionar uma notificação de erro se desejar
     } finally {
       setLoadingStates(prev => ({ ...prev, [type]: false }));

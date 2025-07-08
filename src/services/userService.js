@@ -33,7 +33,6 @@ export const userService = {
 
   // Criar um novo usuário
   createUser: async (userData) => {
-    console.log(userData);
     const response = await api.post('/api/usuarios', userData);
     return response.data.content;
   },
@@ -63,7 +62,6 @@ export const userService = {
       const response = await api.get('/api/usuarios/setores');
       return response.data.content;
     } catch (error) {
-      console.error('Erro na API getSetores:', error);
       throw error;
     }
   },
@@ -74,7 +72,6 @@ export const userService = {
       const response = await api.get('/api/usuarios/estatisticas/tipos');
       return response.data.content || [];
     } catch (error) {
-      console.error('Erro na API getTiposUsuario:', error);
       throw error;
     }
   },
@@ -85,7 +82,6 @@ export const userService = {
       const response = await api.get('/api/setor-cargo');
       return response.data.content;
     } catch (error) {
-      console.error('Erro na API getSetoresECargos:', error);
       throw error;
     }
   },
@@ -98,7 +94,6 @@ export const userService = {
       });
       return response.data.content;
     } catch (error) {
-      console.error('Erro na API sendPasswordResetRequest:', error);
       throw error;
     }
   },
@@ -116,6 +111,5 @@ export const userService = {
 };
 export async function getUsuarioByKeycloakId(keycloakId) {
   const response = await api.get(`/api/usuarios/${keycloakId}`);
-  console.log('Resposta da API do ID do usuário:', response.data);
   return response.data.content;
 }  

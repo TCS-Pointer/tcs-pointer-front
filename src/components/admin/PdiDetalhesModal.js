@@ -120,7 +120,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             };
 
             const response = await api.put(`/pdi/${pdi.id}`, updatedPdi);
-            console.log('API Response Data:', response.data);
             setEditablePdi({
                 ...response.data.content,
                 usuario: response.data.content?.usuario || {},
@@ -153,7 +152,6 @@ const PdiDetalhesModal = ({ isOpen, onClose, pdi, onUpdate }) => {
             setIsEditing(false);
             if (onUpdate) onUpdate();
         } catch (error) {
-            console.error('Erro ao atualizar PDI ou Marcos:', error);
             toast.error('Erro ao atualizar PDI ou Marcos. Verifique os dados e tente novamente.');
         }
     };

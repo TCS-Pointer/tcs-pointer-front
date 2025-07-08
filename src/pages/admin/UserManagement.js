@@ -46,14 +46,10 @@ const UserManagement = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      console.log('Carregando usuários com filtros:', filters);
       const data = await userService.getUsers(page, filters);
-      console.log('Resposta da API:', data);
-      console.log('Primeiro usuário da lista:', data?.content?.[0]);
       setUsers(data?.content || []);
       setTotalUsers(data?.totalElements || 0);
     } catch (err) {
-      console.error('Erro detalhado ao carregar usuários:', err);
       setError('Erro ao carregar usuários');
       setUsers([]);
       setTotalUsers(0);
@@ -112,7 +108,6 @@ const UserManagement = () => {
   };
 
   const handleFilterChange = (newFilters) => {
-    console.log('UserManagement recebeu novos filtros:', newFilters);
     setFilters(newFilters);
     setPage(0); // Reset page when filters change
   };

@@ -33,7 +33,6 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
         const data = await userService.getSetoresECargos();
         setSetoresDisponiveis(data.setores || []);
       } catch (error) {
-        console.error('Erro ao carregar setores e cargos:', error);
         toast.error('Erro ao carregar setores e cargos. Tente novamente.');
       } finally {
         setIsLoadingSetores(false);
@@ -56,7 +55,6 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
 
   useEffect(() => {
     if (open && user) {
-      console.log('Dados do usuário recebidos no modal:', user);
       setForm({
         nome: user.nome || '',
         email: user.email || '',
@@ -141,7 +139,6 @@ export default function UserEditModal({ open, onClose, onSave, user }) {
       await userService.sendPasswordResetRequest(form.email);
       toast.success('Solicitação de redefinição de senha enviada com sucesso!');
     } catch (error) {
-      console.error('Erro ao solicitar redefinição de senha:', error);
       toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
     } finally {
       setIsSendingPasswordReset(false);

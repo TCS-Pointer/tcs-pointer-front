@@ -42,7 +42,6 @@ const ComunicadosManagement = () => {
     } catch (err) {
       setError('Erro ao carregar comunicados.');
       toast.error('Erro ao carregar comunicados.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -69,7 +68,6 @@ const ComunicadosManagement = () => {
       loadComunicados(busca, currentPage);
       } catch (err) {
         toast.error('Erro ao excluir comunicado.');
-        console.error(err);
     } finally {
       setShowDeleteModal(false);
       setComunicadoToDelete(null);

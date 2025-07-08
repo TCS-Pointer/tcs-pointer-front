@@ -19,7 +19,6 @@ class RelatorioService {
             
             return { success: true };
         } catch (error) {
-            console.error('Erro ao baixar relatório de usuários:', error);
             throw error;
         }
     }
@@ -41,7 +40,6 @@ class RelatorioService {
             
             return { success: true };
         } catch (error) {
-            console.error('Erro ao baixar relatório de PDI:', error);
             throw error;
         }
     }
@@ -63,7 +61,6 @@ class RelatorioService {
             
             return { success: true };
         } catch (error) {
-            console.error('Erro ao baixar relatório de comunicados:', error);
             throw error;
         }
     }
@@ -85,7 +82,6 @@ class RelatorioService {
             
             return { success: true };
         } catch (error) {
-            console.error('Erro ao baixar relatório de feedback:', error);
             throw error;
         }
     }
