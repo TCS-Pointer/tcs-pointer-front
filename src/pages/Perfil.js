@@ -186,6 +186,12 @@ const Perfil = () => {
         >
           Segurança 2FA
         </button>
+        <button
+          className={`px-6 py-2 rounded-t transition-colors text-sm font-medium ${tab === 'privacidade' ? 'bg-white text-blue-700' : 'text-gray-600'}`}
+          onClick={() => setTab('privacidade')}
+        >
+          Política de Privacidade
+        </button>
       </div>
       {tab === 'info' && userData && (
         <div className="bg-white rounded shadow p-8">
@@ -380,6 +386,135 @@ const Perfil = () => {
           {msg2FA && (!setup2FA || (twoFAStatus && twoFAStatus.twoFactorEnabled)) && (
             <div className={`text-sm mt-2 ${msg2FA.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>{msg2FA.text}</div>
           )}
+        </div>
+      )}
+      {tab === 'privacidade' && (
+        <div className="bg-white rounded shadow p-8">
+          <h2 className="text-2xl font-bold mb-6">Política de Privacidade - Pointer</h2>
+          
+          <div className="space-y-6 text-sm leading-relaxed">
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">1. Quais dados coletamos e para quais finalidades?</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">1.1. Dados fornecidos pelo titular</h4>
+                  <p className="text-gray-700 mb-2">Coletamos informações que você nos fornece diretamente, como:</p>
+                  <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                    <li>Nome completo</li>
+                    <li>Endereço de e-mail</li>
+                    <li>Informações profissionais (cargo, setor)</li>
+                    <li>Dados de autenticação (senhas, códigos 2FA)</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">1.2. Dados coletados automaticamente</h4>
+                  <p className="text-gray-700 mb-2">Durante o uso da plataforma, coletamos:</p>
+                  <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                    <li>Dados de uso da plataforma (PDIs, feedbacks, comunicados)</li>
+                    <li>Informações de sessão e navegação</li>
+                    <li>Dados de dispositivo e localização</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">2. Como coletamos seus dados?</h3>
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800 mb-2">2.1. Consentimento</h4>
+                <p className="text-gray-700">Coletamos dados com seu consentimento explícito, especialmente para funcionalidades opcionais como autenticação de dois fatores.</p>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">3. Quais são os seus direitos?</h3>
+              <p className="text-gray-700 mb-3">Como titular dos dados, você possui os seguintes direitos:</p>
+              <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                <li><strong>Confirmação:</strong> Solicitar confirmação da existência de tratamento</li>
+                <li><strong>Acesso:</strong> Acessar seus dados pessoais</li>
+                <li><strong>Correção:</strong> Corrigir dados incompletos, inexatos ou desatualizados</li>
+                <li><strong>Anonimização:</strong> Solicitar anonimização de dados desnecessários</li>
+                <li><strong>Portabilidade:</strong> Receber dados em formato estruturado</li>
+                <li><strong>Eliminação:</strong> Solicitar exclusão de dados</li>
+                <li><strong>Informação:</strong> Ser informado sobre compartilhamento de dados</li>
+                <li><strong>Revogação:</strong> Revogar consentimento a qualquer momento</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">4. Como exercer seus direitos?</h3>
+              <p className="text-gray-700 mb-3">Para exercer seus direitos, entre em contato conosco através de:</p>
+              <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                <li>E-mail: dpo@pointer.com.br</li>
+                <li>Formulário de contato na plataforma</li>
+                <li>Telefone: (11) 99999-9999</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">5. Prazo e forma de armazenamento</h3>
+              <p className="text-gray-700 mb-3">Seus dados são armazenados de forma segura e mantidos pelo tempo necessário para:</p>
+              <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                <li>Cumprimento das finalidades para as quais foram coletados</li>
+                <li>Atendimento a obrigações legais</li>
+                <li>Exercício de direitos em processos judiciais</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">6. Medidas de segurança</h3>
+              <p className="text-gray-700 mb-3">Implementamos medidas técnicas e organizacionais para proteger seus dados:</p>
+              <ul className="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                <li>Criptografia de dados sensíveis</li>
+                <li>Controle de acesso rigoroso</li>
+                <li>Monitoramento contínuo de segurança</li>
+                <li>Backup regular dos dados</li>
+                <li>Treinamento da equipe em proteção de dados</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">7. Compartilhamento de dados</h3>
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800 mb-2">7.1. Transferência internacional</h4>
+                <p className="text-gray-700">Seus dados podem ser transferidos para países que ofereçam grau de proteção adequado, conforme legislação brasileira.</p>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">8. Cookies e tecnologias similares</h3>
+              <p className="text-gray-700">Utilizamos cookies e tecnologias similares para melhorar sua experiência na plataforma, sempre com seu consentimento.</p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">9. Alterações desta política</h3>
+              <p className="text-gray-700">Esta política pode ser atualizada periodicamente. Notificaremos sobre mudanças significativas através da plataforma ou e-mail.</p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">10. Responsabilidade</h3>
+              <p className="text-gray-700">A Pointer é responsável pelo tratamento de seus dados pessoais e está comprometida em proteger sua privacidade.</p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">11. Encarregado pelo tratamento de dados (DPO)</h3>
+              <p className="text-gray-700 mb-3">Para questões relacionadas à proteção de dados, entre em contato com nosso DPO:</p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700"><strong>E-mail:</strong> dpo@pointer.com.br</p>
+                <p className="text-gray-700"><strong>Telefone:</strong> (11) 99999-9999</p>
+                <p className="text-gray-700"><strong>Endereço:</strong> Rua Example, 123 - São Paulo/SP</p>
+              </div>
+            </section>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Última atualização:</strong> Janeiro de 2024<br/>
+                Esta política está em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
+              </p>
+            </div>
+          </div>
         </div>
       )}
       {!loading && !userData && (
